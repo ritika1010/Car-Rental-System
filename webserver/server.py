@@ -43,11 +43,14 @@ engine = create_engine(DATABASEURI)
 #
 conn = engine.connect()
 
-conn.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-conn.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+create_table_sql = text("""
+    CREATE TABLE IF NOT EXISTS test (
+        id serial PRIMARY KEY,
+        name text
+    )
+""")
+conn.execute(create_table_sql)
+conn.execute(text("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');"""))
 
 
 @app.before_request
@@ -61,6 +64,7 @@ def before_request():
   """
   try:
     g.conn = engine.connect()
+    print("connecting to database")
   except:
     print("uh oh, problem connecting to database")
     import traceback; traceback.print_exc()
@@ -111,7 +115,7 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute(text("SELECT name FROM test"))
   names = []
   for result in cursor:
     names.append(result['name'])  # can also be accessed using result[0]
@@ -169,7 +173,7 @@ def another():
 @app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
+  g.conn.execute(text('INSERT INTO test(name) VALUES (%s)', name))
   return redirect('/')
 
 
