@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Car Data</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        select, input {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Car Data</h1>
+    
+    <label for="capacityFilter">Filter by Capacity:</label>
+    <select id="capacityFilter">
+        <option value="">All</option>
+        <option value="4">4</option>
+        <option value="6">6</option>
+        <option value="8">8</option>
+    </select>
+
+    <label for="fuelTypeFilter">Filter by Fuel Type:</label>
+    <select id="fuelTypeFilter">
+        <option value="">All</option>
+        <option value="Gasoline">Gasoline</option>
+        <option value="Diesel">Diesel</option>
+        <option value="Electric">Electric</option>
+    </select>
+
+    <table id="carTable">
+            <thead>
+              <tr>
+                <th>License Plate</th>
+                <th>Model</th>
+                <th>Brand</th>
+                <th>Capacity</th>
+                <th>Fuel Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in data %}
+                <tr>
+                  <td>{{ row[0] }}</td>
+                  <td>{{ row[1] }}</td>
+                  <td>{{ row[2] }}</td>
+                  <td>{{ row[3] }}</td>
+                  <td>{{ row[4] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+    </table>
+</body>
+</html>

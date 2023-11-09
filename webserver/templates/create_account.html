@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Account</title>
+    <style>
+        /* Your CSS styles for the create account page */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <form action="create_account.php" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <br>
+            <label for="email">Email (Username):</label>
+            <input type="email" id="email" name="email" required>
+            <br>
+            <label for="ssn">SSN:</label>
+            <input type="text" id="ssn" name="ssn" required>
+            <br>
+            <label for "license">License:</label>
+            <input type="text" id="license" name="license" required>
+            <br>
+            <label for="contact">Password:</label>
+            <input type="password" id="contact" name="contact" required>
+            <br>
+            <label for="user-type">User Type:</label>
+            <select id="user-type" name="user-type">
+                <option value="owner">Owner</option>
+                <option value="renter">Renter</option>
+            </select>
+            <br>
+            <input type="submit" value="Create Account">
+        </form>
+        <p>Already have an account? <a href="login.html">Log in</a></p>
+    </div>
+</body>
+</html>

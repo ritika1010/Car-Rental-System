@@ -52,18 +52,18 @@ def index():
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
 
-  cursor = g.conn.execute(text("SELECT name FROM people"))
+  cursor = g.conn.execute(text("SELECT license_plate,model,brand,capacity,fuel_type FROM car"))
   names = []
   for result in cursor:
-    names.append(result[0])  # can also be accessed using result[0]
+    names.append(result)  # can also be accessed using result[0]
   cursor.close()
 
   context = dict(data = names)
-  return render_template("index.html", **context)
+  return render_template("car_list.html", **context)
 
-@app.route('/another')
+@app.route('/people')
 def another():
-  return render_template("another.html")
+  return render_template("people_list.html")
 
 
 # Example of adding new data to the database

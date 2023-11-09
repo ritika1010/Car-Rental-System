@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>People List</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        select {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>People List</h1>
+
+    <label for="typeFilter">Filter by Type:</label>
+    <select id="typeFilter">
+        <option value="">All</option>
+        <option value="Renter">Renter</option>
+        <option value="Owner">Owner</option>
+    </select>
+
+    <table id="peopleTable">
+        <tr>
+            <th>SSN</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>License</th>
+            <th>Contact</th>
+            <th>Type</th>
+            <th>Ratings</th>
+        </tr>
+        <!-- Data rows will be inserted here -->
+    </table>
+
+    <script>
+        const peopleTable = document.getElementById('peopleTable');
+        const typeFilter = document.getElementById('typeFilter');
+
+        // Sample data (you would replace this with data from your database)
+        const data = [
+            { ssn: '12345678901', name: 'John Doe', email: 'john@example.com', license: 'ABC123', contact: '123-456-7890', type: 'Renter', ratings: 4.5 },
+            { ssn: '98765432101', name: 'Jane Smith', email: 'jane@example.com', license: 'XYZ789', contact: '987-654-3210', type: 'Owner', ratings: 4.2 },
+            // Add more data here...
+        ];
+
+        // Function to populate the table with data based on filters
+        function populateTable() {
+            const typeFilterValue = typeFilter.value;
+
+            // Clear the table
+            peopleTable.innerHTML = '<tr><th>SSN</th><th>Name</th><th>Email</th><th>License</th><th>Contact</th><th>Type</th><th>Ratings</th></tr>';
+
+            // Populate the table with filtered data
+            data.forEach(person => {
+                if (typeFilterValue === '' || person.type === typeFilterValue) {
+                    peopleTable.innerHTML += `<tr><td>${person.ssn}</td><td>${person.name}</td><td>${person.email}</td><td>${person.license}</td><td>${person.contact}</td><td>${person.type}</td><td>${person.ratings}</td></tr>`;
+                }
+            });
+        }
+
+        // Initial population of the table
+        populateTable();
+
+        // Add event listener to the filter element
+        typeFilter.addEventListener('change', populateTable);
+    </script>
+</body>
+</html>
