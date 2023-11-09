@@ -61,10 +61,51 @@ def index():
   context = dict(data = names)
   return render_template("car_list.html", **context)
 
-@app.route('/people')
-def another():
-  return render_template("people_list.html")
+@app.route('/filter', methods=['POST'])
+def filter_data():
+    # Get user input from the form
+  # Get user input from the form and convert it to an integer
+  capacity = request.form.get('capacity')
+  capacity = int(capacity) if capacity.isnumeric() else None
 
+  fuel = request.form.get('fuel')
+
+  print(capacity)
+  print(fuel)
+  if capacity and fuel:
+    # Perform database query with filtering
+    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity and fuel_type = :param_fuel")
+    query = query.bindparams(param_capacity=capacity,param_fuel=fuel)
+    cursor = g.conn.execute(query)
+    filtered_data = [result for result in cursor]
+    cursor.close()
+    return render_template('car_list.html', data=filtered_data)
+
+  if capacity:
+    # Perform database query with filtering
+    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity")
+    query = query.bindparams(param_capacity=capacity)
+    cursor = g.conn.execute(query)
+    filtered_data = [result for result in cursor]
+    cursor.close()
+    return render_template('car_list.html', data=filtered_data)
+  elif fuel:
+    # Perform database query with filtering
+    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE fuel_type = :param_fuel")
+    query = query.bindparams(param_fuel=fuel)
+    cursor = g.conn.execute(query)
+    filtered_data = [result for result in cursor]
+    cursor.close()
+    return render_template('car_list.html', data=filtered_data)
+  else:
+    # Retrieve all data if capacity is not specified
+    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car")
+    cursor = g.conn.execute(query)
+    filtered_data = [result for result in cursor]
+    cursor.close()
+    return render_template('car_list.html', data=filtered_data)
+
+  return render_template('car_list.html', data=filtered_data)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])

@@ -26,21 +26,28 @@
 <body>
     <h1>Car Data</h1>
     
-    <label for="capacityFilter">Filter by Capacity:</label>
-    <select id="capacityFilter">
-        <option value="">All</option>
-        <option value="4">4</option>
-        <option value="6">6</option>
-        <option value="8">8</option>
-    </select>
-
-    <label for="fuelTypeFilter">Filter by Fuel Type:</label>
-    <select id="fuelTypeFilter">
-        <option value="">All</option>
-        <option value="Gasoline">Gasoline</option>
-        <option value="Diesel">Diesel</option>
-        <option value="Electric">Electric</option>
-    </select>
+    <form action="/filter" method="POST">
+      <label for="capacity">Filter by Capacity:</label>
+      <select id="capacity" name="capacity">
+          <option value="">All</option>
+          <option value="2">2</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+      </select>
+      <label for="fuel">Filter by Fuel Type:</label>
+      <select id="fuel" name="fuel">
+          <option value="">All</option>
+          <option value="electric">Electric</option>
+          <option value="diesel">Diesel</option>
+          <option value="hybrid">Hybrid</option>
+          <option value="petrol">Petrol</option>
+      </select>
+      <button type="submit">Filter</button>
+  </form>
+  
 
     <table id="carTable">
             <thead>
