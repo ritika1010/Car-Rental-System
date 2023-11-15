@@ -175,12 +175,22 @@ def login():
     print(loginemail)
     print(usertype)
     
-    sql = text("SELECT ssn FROM people WHERE email = :email_param and contact = :contact_param")
-    sql = sql.bindparams(email_param=loginemail, contact_param = logincontact)
-    cursor = g.conn.execute(sql)     
+    sql = text("SELECT ssn, contact FROM people WHERE email = :email_param")
+    sql = sql.bindparams(email_param=loginemail)
+    cursor = g.conn.execute(sql)         
     existing_user = cursor.fetchone()
-    # if email exists 
+    # if email exists
     if existing_user:
+      contact = existing_user[1]
+      #check password
+      if contact == logincontact:
+        print("Password matches.")
+      else:
+        message = "Incorrect password!!!"
+        print("Incorrect password!!!")
+        return render_template('login.html', message = message)
+
+      #check user type
       ssn = existing_user[0]
       sql = text(f"SELECT * FROM {usertype} WHERE ssn = :ssn_param")
       sql = sql.bindparams(ssn_param=ssn)
