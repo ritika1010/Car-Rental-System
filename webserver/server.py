@@ -46,37 +46,6 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-
-@app.route('/owner_cars')
-def owner_car():
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
-
-  cursor = g.conn.execute(text("""
-    SELECT 
-    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
-    Av.date, av.start_time, av.end_time,
-    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
-   FROM 
-    car c 
-    JOIN 
-        avail_at a ON c.license_plate = a.license_plate 
-    JOIN 
-        location l ON a.loc_id = l.loc_id
-    JOIN
-        avail_for f on c.license_plate = f.license_plate
-    JOIN 
-        Availability av on f.slot_id = av.slot_id;
-    """))
-
-  names = []
-  for result in cursor:
-    names.append(result)  # can also be accessed using result[0]
-  cursor.close()
-
-  context = dict(data = names)
-  return render_template("owner_cars.html", **context)
-
 @app.route('/filter', methods=['POST'])
 def filter_data():
     # Get user input from the form
@@ -207,6 +176,102 @@ def add():
 @app.route('/login')
 def login():
     return render_template('login.html')
+
+@app.route('/add_car', methods=['GET','POST'])
+def add_car():
+  message = None
+  if request.method == 'POST':
+    license_plate = request.form.get('license_plate')
+    brand = request.form.get('brand')
+    capacity = request.form.get('capacity')
+    model = request.form.get('model')
+    fuel_type = request.form.get('fuel_type')
+    owner_ssn = request.form.get('owner_ssn')
+
+    print(license_plate)
+    print(capacity)
+    print(brand)
+    print(fuel_type)
+    print(model)
+
+    # check if the license plate already exists if yes display already available 
+    sql = text("SELECT * FROM car WHERE license_plate = :license_plate_param")
+    sql = sql.bindparams(license_plate_param=license_plate)
+    cursor = g.conn.execute(sql)     
+    existing_car = cursor.fetchone()
+    # if not the insert stmnt into car
+    if existing_car:
+      print(f"Car with license plate {license_plate} already exists.")
+      message = f"Car with license plate {license_plate} already exists."
+    else:
+      insert_sql = (
+                text("INSERT INTO car (license_plate, brand, capacity, model, fuel_type, owner_ssn) VALUES "
+                     "(:license_plate, :brand, :capacity, :model, :fuel_type, :owner_ssn)"))
+      insert_sql = insert_sql.bindparams(license_plate=license_plate, brand=brand, capacity=capacity, model=model, fuel_type=fuel_type,owner_ssn=owner_ssn)
+      cursor = g.conn.execute(insert_sql) 
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+      print(f"Car with license plate {license_plate} added successfully.")
+
+      # Update the owner table to increment number_cars
+      update_sql = (text("UPDATE owner SET number_cars = number_cars + 1 WHERE ssn = :owner_ssn"))
+      update_sql = update_sql.bindparams(owner_ssn=owner_ssn)
+      cursor = g.conn.execute(update_sql)
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+      message = f"Car with license plate {license_plate} added successfully."
+
+  return render_template('add_car.html', message=message)
+
+
+@app.route('/owner_profile')
+def owner_profile():
+  print(request.args)
+
+  cursor = g.conn.execute(text("""
+    SELECT 
+        P.*,
+        O.owner_ratings, o.number_cars
+    FROM 
+        people p 
+    JOIN 
+        owner o ON p.ssn = o.ssn;
+    """))
+
+  owners_data = []
+  for result in cursor:
+    owners_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  cursor = g.conn.execute(text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+   FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id;
+    """))
+
+  cars_data = []
+  for result in cursor:
+    cars_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  context = dict(data=owners_data, cars=cars_data)
+  return render_template("owner_profile.html", **context)
+
 
 @app.route('/')
 def index():
