@@ -47,19 +47,35 @@ def teardown_request(exception):
     pass
 
 
-@app.route('/')
-def index():
+@app.route('/owner_cars')
+def owner_car():
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
 
-  cursor = g.conn.execute(text("SELECT license_plate,model,brand,capacity,fuel_type FROM car"))
+  cursor = g.conn.execute(text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+   FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id;
+    """))
+
   names = []
   for result in cursor:
     names.append(result)  # can also be accessed using result[0]
   cursor.close()
 
   context = dict(data = names)
-  return render_template("car_list.html", **context)
+  return render_template("owner_cars.html", **context)
 
 @app.route('/filter', methods=['POST'])
 def filter_data():
@@ -74,7 +90,26 @@ def filter_data():
   print(fuel)
   if capacity and fuel:
     # Perform database query with filtering
-    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity and fuel_type = :param_fuel")
+    # query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity and fuel_type = :param_fuel")
+    query = text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id
+    WHERE 
+        c.capacity = :param_capacity and c.fuel_type = :param_fuel;
+    """)
+
     query = query.bindparams(param_capacity=capacity,param_fuel=fuel)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -83,7 +118,25 @@ def filter_data():
 
   if capacity:
     # Perform database query with filtering
-    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity")
+    # query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE capacity = :param_capacity")
+    query = text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id
+    WHERE 
+        c.capacity = :param_capacity;
+    """)
     query = query.bindparams(param_capacity=capacity)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -91,7 +144,26 @@ def filter_data():
     return render_template('car_list.html', data=filtered_data)
   elif fuel:
     # Perform database query with filtering
-    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE fuel_type = :param_fuel")
+    # query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE fuel_type = :param_fuel")
+    query = text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id
+    WHERE 
+        c.fuel_type = :param_fuel;
+    """)
+
     query = query.bindparams(param_fuel=fuel)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -99,7 +171,24 @@ def filter_data():
     return render_template('car_list.html', data=filtered_data)
   else:
     # Retrieve all data if capacity is not specified
-    query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car")
+    query = text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id
+    WHERE 
+        c.capacity = :param_capacity and c.fuel_type = :param_fuel;
+    """)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
     cursor.close()
@@ -117,10 +206,37 @@ def add():
 
 @app.route('/login')
 def login():
-    abort(401)
-    this_is_never_executed()
+    return render_template('login.html')
 
+@app.route('/')
+def index():
+  # DEBUG: this is debugging code to see what request looks like
+  print(request.args)
 
+  cursor = g.conn.execute(text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+   FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id;
+    """))
+
+  names = []
+  for result in cursor:
+    names.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  context = dict(data = names)
+  return render_template("car_list.html", **context)
 if __name__ == "__main__":
   import click
 
