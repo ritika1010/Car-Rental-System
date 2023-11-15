@@ -3,7 +3,7 @@ import os
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, abort
+from flask import Flask, request, render_template, g, redirect, Response, abort, url_for
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -200,7 +200,7 @@ def login():
       if isUserType:
         print("User found!")
         if usertype == 'owner':
-          return render_template('owner_profile.html')
+          return redirect(url_for('owner_profile', ssn = ssn))
         else:
           return render_template('renter_profile.html')
         # go to profile page
@@ -269,39 +269,47 @@ def add_car():
 @app.route('/owner_profile')
 def owner_profile():
   print(request.args)
-
-  cursor = g.conn.execute(text("""
+  ssn = request.args.get('ssn')
+  print(ssn)
+  sql = (text("""
     SELECT 
         P.*,
         O.owner_ratings, o.number_cars
     FROM 
         people p 
     JOIN 
-        owner o ON p.ssn = o.ssn;
+        owner o ON p.ssn = o.ssn
+    WHERE 
+        p.ssn = :ssn_param;
     """))
-
+  
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)   
   owners_data = []
   for result in cursor:
     owners_data.append(result)  # can also be accessed using result[0]
   cursor.close()
 
-  cursor = g.conn.execute(text("""
+  sql = text("""
     SELECT 
     C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
     Av.date, av.start_time, av.end_time,
     CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
    FROM 
     car c 
-    JOIN 
+    LEFT JOIN 
         avail_at a ON c.license_plate = a.license_plate 
-    JOIN 
+    LEFT JOIN 
         location l ON a.loc_id = l.loc_id
-    JOIN
+    LEFT JOIN
         avail_for f on c.license_plate = f.license_plate
-    JOIN 
-        Availability av on f.slot_id = av.slot_id;
-    """))
-
+    LEFT JOIN 
+        Availability av on f.slot_id = av.slot_id
+    WHERE
+        c.owner_ssn = :ssn_param;
+    """)
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)  
   cars_data = []
   for result in cursor:
     cars_data.append(result)  # can also be accessed using result[0]

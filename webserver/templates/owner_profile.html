@@ -86,7 +86,6 @@
     
     <br>
     {% if cars %}
-        {% set car = cars[0] %}
         <table id="carTable">
         <thead>
             <tr>
@@ -103,18 +102,20 @@
             </tr>
           </thead>
           <tbody>
+            {% for row in cars %}
               <tr>
-                <td>{{ car.license_plate }}</td>
-                <td>{{ car.model }}</td>
-                <td>{{ car.brand }}</td>
-                <td>{{ car.capacity }}</td>
-                <td>{{ car.fuel_type }}</td>
-                <td>{{ car.date }}</td>
-                <td>{{ car.start_time }}</td>
-                <td>{{ car.end_time }}</td>
-                <td>{{ car.location_string }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
               </tr>
-          </tbody>
+                  {% endfor %}
+            </tbody>
         </table>
     {% else %}
         <p>No Cars available.</p>
