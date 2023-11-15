@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Car Availability</title>
+</head>
+<body>
+
+    <h2>Add Car Availability</h2>
+
+    <form action="submit_availability.php" method="post">
+        <label for="licensePlate">Select Car License Plate:</label>
+        <select id="licensePlate" name="licensePlate" required>
+            <!-- Add options dynamically based on your car data -->
+            <option value="CAR001">CAR001</option>
+            <option value="CAR002">CAR002</option>
+            <!-- Add more options as needed -->
+        </select>
+
+        <br>
+
+        <label for="location">Select Location:</label>
+        <select id="location" name="location" required>
+            <!-- Add options dynamically based on your location data -->
+            <option value="Location1">Location 1</option>
+            <option value="Location2">Location 2</option>
+            <!-- Add more options as needed -->
+        </select>
+
+        <br>
+
+        <label for="date">Enter Date:</label>
+        <input type="date" id="date" name="date" required>
+
+        <br>
+
+        <label for="startTime">Enter Start Time:</label>
+        <input type="time" id="startTime" name="startTime" required>
+
+        <br>
+
+        <label for="endTime">Enter End Time:</label>
+        <input type="time" id="endTime" name="endTime" required>
+
+        <br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+</body>
+</html>

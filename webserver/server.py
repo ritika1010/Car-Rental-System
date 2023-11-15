@@ -3,13 +3,16 @@ import os
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, abort, url_for
+from flask import Flask, request, render_template, g, redirect, Response, abort, url_for, session
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 DATABASEURI = "postgresql://rgd2127:451032@34.74.171.121/proj1part2"
 engine = create_engine(DATABASEURI)
 conn = engine.connect()
+app.secret_key = 'XYZ'  # Set a secret key for session security
+
+session_ssn = None
 
 create_table_sql = text("""
     CREATE TABLE IF NOT EXISTS test (
@@ -200,8 +203,10 @@ def login():
       if isUserType:
         print("User found!")
         if usertype == 'owner':
+          session['ssn'] = ssn
           return redirect(url_for('owner_profile', ssn = ssn))
         else:
+          session['ssn'] = ssn
           return render_template('renter_profile.html')
         # go to profile page
       # invalid user type for email
@@ -318,6 +323,13 @@ def owner_profile():
   context = dict(data=owners_data, cars=cars_data)
   return render_template("owner_profile.html", **context)
 
+@app.route('/add_car_avail', methods=['GET','POST'])
+def add_car_avail():
+  message = None
+  session_ssn = session.get('ssn', 'Default Value')
+  print("SESSION SSN -- " , session_ssn)
+  
+  return render_template('add_car_availability.html')
 
 @app.route('/car_list')
 def car_list():
