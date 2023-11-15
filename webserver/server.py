@@ -1,13 +1,4 @@
 
-"""
-Columbia's COMS W4111.001 Introduction to Databases
-Example Webserver
-To run locally:
-    python3 server.py
-Go to http://localhost:8111 in your browser.
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
-"""
 import os
   # accessible as a variable in index.html:
 from sqlalchemy import *
@@ -173,9 +164,46 @@ def add():
   return redirect('/')
 
 
-@app.route('/login')
+@app.route('/', methods=['GET','POST'])
 def login():
-    return render_template('login.html')
+  message = None
+  if request.method == 'POST':
+    loginemail = request.form.get('loginemail')
+    logincontact = request.form.get('logincontact')
+    usertype = request.form.get('usertype')
+    print(logincontact)
+    print(loginemail)
+    print(usertype)
+    
+    sql = text("SELECT ssn FROM people WHERE email = :email_param and contact = :contact_param")
+    sql = sql.bindparams(email_param=loginemail, contact_param = logincontact)
+    cursor = g.conn.execute(sql)     
+    existing_user = cursor.fetchone()
+    # if email exists 
+    if existing_user:
+      ssn = existing_user[0]
+      sql = text(f"SELECT * FROM {usertype} WHERE ssn = :ssn_param")
+      sql = sql.bindparams(ssn_param=ssn)
+      cursor = g.conn.execute(sql)     
+      isUserType = cursor.fetchone()
+      # if user type is right  
+      if isUserType:
+        print("User found!")
+        if usertype == 'owner':
+          return render_template('owner_profile.html')
+        else:
+          return render_template('renter_profile.html')
+        # go to profile page
+      # invalid user type for email
+      else:
+        message = (f"Invalid User Type found! Not an {usertype}")
+        print(f"Invalid User Type found! Not an {usertype}")
+    # invalid user create account
+    else:
+      message = "User not found! Create new account"
+      print("User not found.")
+
+  return render_template('login.html', message = message)
 
 @app.route('/add_car', methods=['GET','POST'])
 def add_car():
@@ -273,8 +301,8 @@ def owner_profile():
   return render_template("owner_profile.html", **context)
 
 
-@app.route('/')
-def index():
+@app.route('/car_list')
+def car_list():
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
 
