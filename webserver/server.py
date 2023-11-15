@@ -46,7 +46,6 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-
 @app.route('/owner_cars')
 def owner_car():
   # DEBUG: this is debugging code to see what request looks like
@@ -194,8 +193,6 @@ def filter_data():
     cursor.close()
     return render_template('car_list.html', data=filtered_data)
 
-  return render_template('car_list.html', data=filtered_data)
-
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
 def add():
@@ -203,6 +200,14 @@ def add():
   g.conn.execute(text('INSERT INTO test(name) VALUES (%s)', name))
   return redirect('/')
 
+@app.route('/create_account')
+def create_account():
+  return render_template('create_account.html')
+
+@app.route('/handle_create_account', methods = ['POST'])
+def handle_create_account():
+  # to do 
+  return render_template('create_account.html')
 
 @app.route('/login')
 def login():
