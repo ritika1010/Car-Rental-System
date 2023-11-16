@@ -255,6 +255,104 @@ def add_car():
 
   return render_template('add_car.html', message=message)
 
+@app.route('/create_account', methods=['GET', 'POST'])
+def create_account():
+    if request.method == 'POST':
+        # Render one template for POST requests
+        name = request.form.get('name')
+        email = request.form.get('email')
+        ssn = request.form.get('ssn')
+        license = request.form.get('license')
+        contact = request.form.get('contact')
+        user_type = request.form.get('user-type')
+        # address
+        street_name = request.form.get('street_name')
+        building = request.form.get('building')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        zipcode = request.form.get('zipcode')
+
+        sql = text("SELECT ssn FROM people WHERE email = :email_param")
+        sql = sql.bindparams(email_param=email)
+        cursor = g.conn.execute(sql)     
+        existing_user = cursor.fetchone()
+
+        def is_empty(value):
+          return value is None or value == ""
+
+        if any(is_empty(value) for value in [name, email, ssn, license, contact, street_name, building, city, state, zipcode]):
+            flash('Please fill out all required fields.')
+            return render_template('create_account.html')
+        # check on ssn
+        if not (len(ssn) == 11 and ssn.isdigit()):
+          error_message = "SSN should have 11 digits only"
+          return render_template('create_account.html', error_message=error_message)
+        # if email exists
+        if existing_user:
+          error_message = "Email already exists. Please use a different email."
+          return render_template('create_account.html', error_message=error_message)
+        # sql query to check if the address given mathes any thats a;ready avail
+        def address_exists(addr):
+          sql = text("SELECT CONCAT( loc.street_name, ' ', loc.Building, ' ', loc.city, ' ', loc.State, ' ', loc.Zipcode) AS full_address FROM Location loc JOIN Address addr ON loc.loc_id = addr.loc_id;")
+          cursor = g.conn.execute(sql)
+          existing_addresses = [row[0] for row in cursor.fetchall()]
+          return addr in existing_addresses
+
+        # CHECK CONDITION check for zipcode
+        if not (zipcode.isdigit() and len(zipcode) == 5):
+          error_message = "Zip Code should have 5 digits only"
+          return render_template('create_account.html', error_message=error_message)
+        
+        address = f"{street_name} {building} {city} {state} {zipcode}"
+        if not (address_exists(address)):
+          # add to table
+          sql = text("INSERT INTO Location (street_name, Building, city, State, Zipcode) VALUES (:street_name, :building, :city, :state, :zipcode)")
+          # Bind the parameters to the SQL statement
+          params = {
+              'street_name': street_name,
+              'building': building,
+              'city': city,
+              'state': state,
+              'zipcode': zipcode
+          }
+          # Execute the SQL statement
+          with engine.connect() as conn:
+            g.conn.execute(sql, params)
+          try:
+            g.conn.commit()
+          except Exception as e:
+            print(f"Error committing changes: {e}")
+        
+        # get loc_id
+        location_query = text("""
+            SELECT loc_id FROM Location
+            WHERE street_name = :street_name
+            AND building = :building
+            AND city = :city
+            AND state = :state
+            AND zipcode = :zipcode
+        """)
+        location_result = g.conn.execute(location_query, **params)
+        loc_id = location_result.fetchone()['loc_id']
+        address_insert_query = text("""
+            INSERT INTO Address (loc_id, ssn)
+            VALUES (:loc_id, :ssn)
+        """)
+        address_params = {
+            'loc_id': loc_id,
+            'ssn': ssn,
+        }
+
+        g.conn.execute(address_insert_query, **address_params)
+        try:
+            g.conn.commit()
+        except Exception as e:
+          print(f"Error committing changes: {e}")
+        
+        return render_template('login.html', success_message = "Successfully created your profile! Login to continue.")
+    else:
+        # Render another template for GET requests
+        return render_template('create_account.html')
 
 @app.route('/owner_profile')
 def owner_profile():
