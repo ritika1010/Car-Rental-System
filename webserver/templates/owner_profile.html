@@ -77,6 +77,38 @@
         <p>No data available.</p>
     {% endif %}
 
+    {% if address %}
+        {% set addr = address[0] %}
+
+        <label for="name">Building Name:</label>
+        <input type="text" id="name" value="{{ addr.building }}" disabled>
+
+        <br>
+
+        <label for="email">Street Name:</label>
+        <input type="email" id="email" value="{{ addr.street_name }}" disabled>
+
+        <br>
+
+        <label for="phone">City:</label>
+        <input type="tel" id="phone" value="{{ addr.city }}" disabled>
+
+        <br>
+
+        <label for="ssn">State:</label>
+        <input type="text" id="ssn" value="{{ addr.state }}" disabled>
+
+        <br>
+
+        <label for="licenseNumber">Zipcode:</label>
+        <input type="text" id="licenseNumber" value="{{ addr.zipcode }}" disabled>
+
+        <br>
+
+    {% else %}
+        <p>No address available.</p>
+    {% endif %}
+
     <div class="button-container">
         <a href="/add_car">
             <button>Add Car</button>

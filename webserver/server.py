@@ -276,6 +276,8 @@ def owner_profile():
   print(request.args)
   ssn = request.args.get('ssn')
   print(ssn)
+  ssn = session.get('ssn', 'Default Value')
+
   sql = (text("""
     SELECT 
         P.*,
@@ -294,6 +296,27 @@ def owner_profile():
   for result in cursor:
     owners_data.append(result)  # can also be accessed using result[0]
   cursor.close()
+
+  sql = (text("""
+    SELECT 
+     l.*
+    FROM 
+        people p 
+    JOIN 
+        address a ON p.ssn = a.ssn
+    JOIN 
+        location l ON  a.loc_id = l.loc_id
+    WHERE 
+        p.ssn = :ssn_param;
+    """))
+  
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)   
+  address_data = []
+  for result in cursor:
+    address_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
 
   sql = text("""
     SELECT 
@@ -320,16 +343,111 @@ def owner_profile():
     cars_data.append(result)  # can also be accessed using result[0]
   cursor.close()
 
-  context = dict(data=owners_data, cars=cars_data)
+  context = dict(data=owners_data, cars=cars_data, address=address_data)
   return render_template("owner_profile.html", **context)
 
 @app.route('/add_car_avail', methods=['GET','POST'])
 def add_car_avail():
   message = None
-  session_ssn = session.get('ssn', 'Default Value')
+  ssn = session.get('ssn', 'Default Value')
+
   print("SESSION SSN -- " , session_ssn)
+  sql = (text("""
+    SELECT 
+        c.license_plate
+    FROM 
+        car c 
+    WHERE 
+        c.owner_ssn = :ssn_param;
+    """))
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)   
+  cars = []
+  for result in cursor:
+    cars.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  sql = (text("""
+    SELECT 
+      l.loc_id,
+      CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+        location l;
+    """))
+  cursor = g.conn.execute(sql)   
+  locations = []
+  for result in cursor:
+    locations.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  if request.method == 'POST':
+    license_plate = request.form.get('licensePlate')
+    loc_id = request.form.get('location')
+    date = request.form.get('date')
+    startTime = request.form.get('startTime')
+    endTime = request.form.get('endTime')
+
+    # check if the license plate & loc_id already exists if yes display already available 
+    sql = text("SELECT * FROM avail_at WHERE license_plate = :license_plate_param and loc_id = :loc_id;")
+    sql = sql.bindparams(license_plate_param=license_plate, loc_id=loc_id)
+    cursor = g.conn.execute(sql)     
+    existing_avail_at = cursor.fetchone()
+    #insert avail at
+    if not existing_avail_at:
+      insert_sql = (text("INSERT INTO avail_at (license_plate, loc_id) VALUES "
+                      "(:license_plate, :loc_id );"))
+      insert_sql = insert_sql.bindparams(license_plate=license_plate,loc_id=loc_id)
+      cursor = g.conn.execute(insert_sql) 
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+      print(f"Avail at for car with license plate {license_plate} added successfully.")
+    else:
+      print(f"Avail at for car with license plate {license_plate} already exists.")
+
+    # check if the availability slot already exists 
+    sql = text("SELECT * FROM availability WHERE date = :date and start_time = :start_time and end_time = :end_time;")
+    sql = sql.bindparams(date=date, start_time=startTime, end_time=endTime)
+    cursor = g.conn.execute(sql)     
+    existing_availability = cursor.fetchone()
+    slot_id = None
+    if existing_availability:
+      slot_id = existing_availability[0]
+      print(f"Availability already exists.")
+    else:
+      insert_sql = (
+                  text("INSERT INTO availability (date, start_time, end_time) VALUES "
+                      "(:date, :start_time, :end_time);"))
+      insert_sql = insert_sql.bindparams(date=date,start_time=startTime, end_time=endTime)
+      cursor = g.conn.execute(insert_sql)
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+      print(f"Availability added successfully.")   
+      sql = text("SELECT * FROM availability WHERE date = :date and start_time = :start_time and end_time = :end_time;")
+      sql = sql.bindparams(date=date, start_time=startTime, end_time=endTime)
+      cursor = g.conn.execute(sql)     
+      existing_availability = cursor.fetchone()
+      slot_id = existing_availability[0]
+
+    #enter into avail_for
+    insert_sql = (text("INSERT INTO avail_for (license_plate, slot_id) VALUES "
+                      "(:license_plate, :slot_id);"))
+    insert_sql = insert_sql.bindparams(license_plate=license_plate,slot_id=slot_id)
+    cursor = g.conn.execute(insert_sql) 
+    try:
+      g.conn.commit()
+    except Exception as e:
+      print(f"Error committing changes: {e}")
+    print(f"Avail_for car with license plate {license_plate} added successfully.")
+
+
+    message = (f"Availability for car with license plate {license_plate} added successfully.")
   
-  return render_template('add_car_availability.html')
+  context = dict(cars=cars, locations=locations, message=message)
+  return render_template("add_car_availability.html", **context)
 
 @app.route('/car_list')
 def car_list():
@@ -360,6 +478,8 @@ def car_list():
 
   context = dict(data = names)
   return render_template("car_list.html", **context)
+
+
 if __name__ == "__main__":
   import click
 
