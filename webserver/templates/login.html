@@ -9,18 +9,29 @@
 <body>
     <div class="container">
         <h1>Login</h1>
-        <form action="login.php" method="post">
-            <label for="login-email">Email (Username):</label>
-            <input type="email" id="login-email" name="login-email" required>
+        <form action="/" method="post">
+            <label for="loginemail">Email (Username):</label>
+            <input type="email" id="loginemail" name="loginemail" required>
             <br>
-            <label for="login-contact">Password:</label>
-            <input type="password" id="login-contact" name="login-contact" required>
+            <label for="logincontact">Password:</label>
+            <input type="password" id="logincontact" name="logincontact" required>
+            <br>
+            <br>
+            <label for="usertype">User Type:</label>
+            <select id="usertype" name="usertype" required>
+                <option value="owner">Owner</option>
+                <option value="renters">Renter</option>
+            </select>
             <br>
             <input type="submit" value="Log In">
         </form>
         <p>Don't have an account? <a href="create_account.html">Create one</a></p>
-        <a href="car_list.html">Car List</a></p>
+        <a href="/car_list">Car List</a></p>
         <a href="people_list.html">People List</a></p>
+
+        {% if message %}
+            <p>{{ message }}</p>
+         {% endif %}
     </div>
 </body>
 </html>
