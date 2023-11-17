@@ -38,7 +38,12 @@
 <body>
 
     <h2>Add Car Availability</h2>
-
+    {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p style="color: green;">{{ success_message }}</p>
+        {% endif %}
     <form action="/add_car_avail" method="post">
         <label for="licensePlate">Select Car License Plate:</label>
         <select id="licensePlate" name="licensePlate" required>

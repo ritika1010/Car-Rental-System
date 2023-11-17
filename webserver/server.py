@@ -1,6 +1,7 @@
 
 import os
   # accessible as a variable in index.html:
+from datetime import datetime
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, abort, url_for, session
@@ -197,9 +198,9 @@ def login():
       if contact == logincontact:
         print("Password matches.")
       else:
-        message = "Incorrect password!!!"
+        error_message = "Incorrect password!!!"
         print("Incorrect password!!!")
-        return render_template('login.html', message = message)
+        return render_template('login.html', error_message = error_message)
 
       #check user type
       ssn = existing_user[0]
@@ -516,6 +517,7 @@ def owner_profile():
   cursor = g.conn.execute(sql)  
   cars_data = []
   for result in cursor:
+    print(result)
     cars_data.append(result)  # can also be accessed using result[0]
   cursor.close()
 
@@ -555,6 +557,11 @@ def add_car_avail():
   for result in cursor:
     locations.append(result)  # can also be accessed using result[0]
   cursor.close()
+  def get_cars():
+    return cars
+  
+  def get_loc():
+    return locations
 
   if request.method == 'POST':
     license_plate = request.form.get('licensePlate')
@@ -562,7 +569,22 @@ def add_car_avail():
     date = request.form.get('date')
     startTime = request.form.get('startTime')
     endTime = request.form.get('endTime')
-
+    cars = get_cars()
+    locations = get_loc()
+    # check if start time < end time
+    if not (startTime < endTime):
+      error_message = "Start time should be lesser than end time!"
+      context = dict(cars=cars, locations=locations, error_message=error_message)
+      return render_template("add_car_availability.html", **context)
+    
+    # check if date is greater than todays date
+    user_datetime = datetime.strptime(date, '%Y-%m-%d')
+    current_datetime = datetime.now()
+    if user_datetime < current_datetime:
+      error_message = "Cannot book a date in the past!"
+      context = dict(cars=cars, locations=locations, error_message=error_message)
+      return render_template("add_car_availability.html", **context)
+    
     # check if the license plate & loc_id already exists if yes display already available 
     sql = text("SELECT * FROM avail_at WHERE license_plate = :license_plate_param and loc_id = :loc_id;")
     sql = sql.bindparams(license_plate_param=license_plate, loc_id=loc_id)
@@ -619,8 +641,9 @@ def add_car_avail():
       print(f"Error committing changes: {e}")
     print(f"Avail_for car with license plate {license_plate} added successfully.")
 
-
     message = (f"Availability for car with license plate {license_plate} added successfully.")
+    context = dict(cars=cars, locations=locations, message=message)
+    return render_template("add_car_availability.html", **context)
   
   context = dict(cars=cars, locations=locations, message=message)
   return render_template("add_car_availability.html", **context)
