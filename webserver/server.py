@@ -232,6 +232,7 @@ def login():
 @app.route('/add_car', methods=['GET','POST'])
 def add_car():
   message = None
+  ssn = session.get('ssn', 'Default Value')
   if request.method == 'POST':
     license_plate = request.form.get('license_plate')
     brand = request.form.get('brand')
@@ -240,6 +241,10 @@ def add_car():
     fuel_type = request.form.get('fuel_type')
     owner_ssn = request.form.get('owner_ssn')
 
+    # check if entered ssn is the correct one
+    if not (ssn == owner_ssn):
+      error_message = "SSN entered is wrong"
+      return render_template('add_car.html', error_message=error_message)
     print(license_plate)
     print(capacity)
     print(brand)
@@ -650,7 +655,117 @@ def add_car_avail():
 
 @app.route('/delete_car', methods = ['GET', 'POST'])
 def delete_car():
-  return render_template("delete_car.html")
+  if request.method == "POST":
+    ssn = session.get('ssn', 'Default Value')
+    print("SESSION SSN -- " , session_ssn)
+    
+    # get license_plate
+    license_plate = request.form.get('licensePlate')
+
+    # check if license is there
+    lic_check = text("""
+                      SELECT c.license_plate
+                     FROM car c
+                     WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate
+                     """)
+    check_params = {
+              'license_plate': license_plate,
+              'ssn': ssn
+          }
+    with engine.connect() as conn:
+      result = conn.execute(lic_check, check_params)
+      existing_license = result.fetchone()
+
+    # Check if the license plate exists
+    if not existing_license:
+      error_message = "License number does not exist for current owner"
+      return render_template('delete_car.html', error_message=error_message)
+    sql = text("""
+          DELETE
+          FROM car c
+          WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate
+        """)
+    # Bind the parameters to the SQL statement
+    del_params = {
+              'license_plate': license_plate,
+              'ssn': ssn
+          }
+    # Execute the SQL statement
+    with engine.connect() as conn:
+      g.conn.execute(sql, del_params)
+    
+    #  getting context for owner_profile
+      sql = (text("""
+    SELECT 
+        P.*,
+        O.owner_ratings, o.number_cars
+    FROM 
+        people p 
+    JOIN 
+        owner o ON p.ssn = o.ssn
+    WHERE 
+        p.ssn = :ssn_param;
+    """))
+  
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)   
+    owners_data = []
+    for result in cursor:
+      owners_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+    sql = (text("""
+      SELECT 
+      l.*
+      FROM 
+          people p 
+      JOIN 
+          address a ON p.ssn = a.ssn
+      JOIN 
+          location l ON  a.loc_id = l.loc_id
+      WHERE 
+          p.ssn = :ssn_param;
+      """))
+    
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)   
+    address_data = []
+    for result in cursor:
+      address_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+    sql = text("""
+      SELECT 
+      C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+      Av.date, av.start_time, av.end_time,
+      CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+      car c 
+      LEFT JOIN 
+          avail_at a ON c.license_plate = a.license_plate 
+      LEFT JOIN 
+          location l ON a.loc_id = l.loc_id
+      LEFT JOIN
+          avail_for f on c.license_plate = f.license_plate
+      LEFT JOIN 
+          Availability av on f.slot_id = av.slot_id
+      WHERE
+          c.owner_ssn = :ssn_param;
+      """)
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)  
+    cars_data = []
+    for result in cursor:
+      print(result)
+      cars_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+
+    try:
+      g.conn.commit()
+    except Exception as e:
+      print(f"Error committing changes: {e}")
+    context = dict(data=owners_data, cars=cars_data, address=address_data)
+    return render_template("owner_profile.html", **context)
+  else:
+    return render_template("delete_car.html")
 
 @app.route('/car_list')
 def car_list():

@@ -39,7 +39,9 @@
 <body>
 
   <h2>Car Information Form</h2>
-
+  {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
   <form action="/add_car" method="post">
     <label for="license_plate">License Plate:</label>
     <input type="text" id="license_plate" name="license_plate" maxlength="12" required><br>

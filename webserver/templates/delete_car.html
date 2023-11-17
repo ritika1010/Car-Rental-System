@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Car</title>
+    <style>
+        /* Your CSS styles for the delete car page */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        input {
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #dc3545; /* Bootstrap's danger color */
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h2>Delete Car</h2>
+    {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <form action="/delete_car" method="post">
+        <label for="licensePlate">License Plate:</label>
+        <input type="text" id="licensePlate" name="licensePlate" required>
+
+        <br>
+
+        <button type="submit">Delete Car</button>
+    </form>
+
+    <p>Return to <a href="/owner_profile">Back</a></p>
+</body>
+</html>
