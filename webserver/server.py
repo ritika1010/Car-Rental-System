@@ -648,6 +648,10 @@ def add_car_avail():
   context = dict(cars=cars, locations=locations, message=message)
   return render_template("add_car_availability.html", **context)
 
+@app.route('/delete_car', methods = ['GET', 'POST'])
+def delete_car():
+  return render_template("delete_car.html")
+
 @app.route('/car_list')
 def car_list():
   # DEBUG: this is debugging code to see what request looks like
