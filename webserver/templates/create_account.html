@@ -9,7 +9,13 @@
 <body>
     <div class="container">
         <h1>Create Account</h1>
-        <form action="create_account.php" method="post">
+        {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p style="color: green;">{{ success_message }}</p>
+        {% endif %}
+        <form action="/create_account" method="post">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
             <br>
@@ -19,7 +25,7 @@
             <label for="ssn">SSN:</label>
             <input type="text" id="ssn" name="ssn" required>
             <br>
-            <label for "license">License:</label>
+            <label for="license">License:</label>
             <input type="text" id="license" name="license" required>
             <br>
             <label for="contact">Password:</label>
@@ -31,9 +37,28 @@
                 <option value="renter">Renter</option>
             </select>
             <br>
+            <label for="street_name">Street Name:</label>
+            <input type="text" id="street_name" name="street_name" placeholder="Enter street name" required>
+            <br>
+
+            <label for="building">Building:</label>
+            <input type="text" id="building" name="building" placeholder="Enter building" required>
+            <br>
+
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" placeholder="Enter city" required>
+            <br>
+
+            <label for="state">State:</label>
+            <input type="text" id="state" name="state" placeholder="Enter state" required>
+            <br>
+
+            <label for="zipcode">Zipcode:</label>
+            <input type="text" id="zipcode" name="zipcode" placeholder="Enter zipcode" required>
+            <br>
             <input type="submit" value="Create Account">
         </form>
-        <p>Already have an account? <a href="login.html">Log in</a></p>
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
     </div>
 </body>
 </html>
