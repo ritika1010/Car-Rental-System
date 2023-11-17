@@ -356,10 +356,6 @@ def create_account():
           # Execute the SQL statement
           with engine.connect() as conn:
             g.conn.execute(sql, addr_params)
-          try:
-            g.conn.commit()
-          except Exception as e:
-            print(f"Error committing changes: {e}")
         
         # get loc_id
         print(street_name)
@@ -396,10 +392,6 @@ def create_account():
         }
         with engine.connect() as conn:
             g.conn.execute(people_insert_query, people_params)
-        try:
-            g.conn.commit()
-        except Exception as e:
-          print(f"Error committing changes: {e}")
         
         # insert into address table
         address_insert_query = text("""
@@ -411,10 +403,6 @@ def create_account():
             'ssn': ssn,
         }
         g.conn.execute(address_insert_query, address_params)
-        try:
-            g.conn.commit()
-        except Exception as e:
-          print(f"Error committing changes: {e}")
 
         # insert into owner or renter
         if user_type.lower() == 'renter':
@@ -433,6 +421,16 @@ def create_account():
             except Exception as e:
               print(f"Error committing changes: {e}")
         elif user_type.lower() == 'owner':
+            license_plate = request.form.get('license_plate', None)
+            brand = request.form.get('brand', None)
+            capacity = request.form.get('capacity', None)
+            model = request.form.get('model', None)
+            fuel_type = request.form.get('fuel_type', None)
+            print(license_plate, "-", brand, "-", capacity, "-", model, "-", fuel_type)
+            if (None or '' ) in [license_plate, brand, capacity, model, fuel_type]:
+              error_message = "All Car fields are required. Please fill out the entire form."
+              return render_template('create_account.html', error_message=error_message)
+            
             owner_insert_query = text("""
                 INSERT INTO Owner (ssn, owner_ratings, number_cars)
                 VALUES (:ssn, 0.0, 1)
@@ -444,6 +442,24 @@ def create_account():
                 'number_cars': 1
             }
             g.conn.execute(owner_insert_query, owner_params)
+
+            # check if the license plate already exists if yes display already available 
+            sql = text("SELECT * FROM car WHERE license_plate = :license_plate_param")
+            sql = sql.bindparams(license_plate_param=license_plate)
+            cursor = g.conn.execute(sql)     
+            existing_car = cursor.fetchone()
+            # if not the insert stmnt into car
+            if existing_car:
+              print(f"Car with license plate {license_plate} already exists.")
+              error_message = f"Car with license plate {license_plate} already exists."
+              return render_template('create_account.html', error_message=error_message)
+            else:
+              insert_sql = (
+                        text("INSERT INTO car (license_plate, brand, capacity, model, fuel_type, owner_ssn) VALUES "
+                            "(:license_plate, :brand, :capacity, :model, :fuel_type, :owner_ssn)"))
+              insert_sql = insert_sql.bindparams(license_plate=license_plate, brand=brand, capacity=capacity, model=model, fuel_type=fuel_type,owner_ssn=ssn)
+              cursor = g.conn.execute(insert_sql) 
+              print(f"Car with license plate {license_plate} added successfully.")
             try:
                 g.conn.commit()
             except Exception as e:
