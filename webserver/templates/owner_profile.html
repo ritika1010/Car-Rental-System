@@ -35,6 +35,14 @@
     </style>
 </head>
 <body>
+    <div id="navbar">
+        <a href="/">Home</a>
+        {% if session.ssn %}
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
     <h2>Owner Profile</h2>
     {% if data %}
         {% set owner = data[0] %}

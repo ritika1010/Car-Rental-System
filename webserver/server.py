@@ -175,6 +175,11 @@ def add():
   g.conn.execute(text('INSERT INTO test(name) VALUES (%s)', name))
   return redirect('/')
 
+@app.route('/logout')
+def logout():
+    # Clear the session
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route('/', methods=['GET','POST'])
 def login():
@@ -273,7 +278,7 @@ def add_car():
       print(f"Car with license plate {license_plate} added successfully.")
 
       # Update the owner table to increment number_cars
-      update_sql = (text("UPDATE owner SET number_cars = number_cars + 1 WHERE ssn = :owner_ssn"))
+      update_sql = (text("UPDATE owner SET number_cars = number_cars WHERE ssn = :owner_ssn"))
       update_sql = update_sql.bindparams(owner_ssn=owner_ssn)
       cursor = g.conn.execute(update_sql)
       try:
