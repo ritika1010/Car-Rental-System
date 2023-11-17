@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Car Availability</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+    
+        table, th, td {
+            border: 1px solid black;
+        }
+    
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    
+        select, input {
+            padding: 5px;
+        }
+    
+        .button-container {
+            text-align: center; /* Optional: Center the buttons */
+        }
+    
+        .button-container button {
+            display: inline-block;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+      </style>
+    
+</head>
+<body>
+
+    <h2>Add Car Availability</h2>
+
+    <form action="/add_car_avail" method="post">
+        <label for="licensePlate">Select Car License Plate:</label>
+        <select id="licensePlate" name="licensePlate" required>
+        {% if cars %}
+            {% for car in cars %}
+                <option value="{{ car.license_plate }}">{{ car.license_plate }}</option>
+            {% endfor %}
+            <!-- Add more options as needed -->
+        </select>
+        {% else %}
+            <p>No Car available. Add Car first</p>
+        {% endif %}
+
+        <br>
+
+        <label for="location">Select Location:</label>
+        <select id="location" name="location" required>
+            <!-- Add options dynamically based on your location data -->
+            {% for location in locations %}
+                <option value="{{ location.loc_id }}">{{ location.location_string }}</option>
+            {% endfor %}
+            <!-- Add more options as needed -->
+        </select>
+
+        <br>
+
+        <label for="date">Enter Date:</label>
+        <input type="date" id="date" name="date" required>
+
+        <br>
+
+        <label for="startTime">Enter Start Time:</label>
+        <input type="time" id="startTime" name="startTime" required>
+
+        <br>
+
+        <label for="endTime">Enter End Time:</label>
+        <input type="time" id="endTime" name="endTime" required>
+
+        <br>
+
+        <div class="button-container">
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <div class="button-container">
+        <a href="/owner_profile">
+            <button>Back to profile</button>
+          </a>
+    </div>
+</body>
+</html>

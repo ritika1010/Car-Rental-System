@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Car Data</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        select,
+        input {
+            padding: 5px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .header a {
+            margin-right: 10px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a href="/renter_profile">Profile</a>
+        <a href="/logout">Logout</a>
+        <!-- You can replace the above button with an actual user profile button -->
+    </div>
+
+
+    <form action="/filter" method="POST">
+        <label for="capacity">Filter by Capacity:</label>
+        <select id="capacity" name="capacity">
+            <option value="">All</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+        </select>
+        <label for="fuel">Filter by Fuel Type:</label>
+        <select id="fuel" name="fuel">
+            <option value="">All</option>
+            <option value="electric">Electric</option>
+            <option value="diesel">Diesel</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="petrol">Petrol</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <table id="carTable">
+        <thead>
+            <tr>
+                <th>License Plate</th>
+                <th>Model</th>
+                <th>Brand</th>
+                <th>Capacity</th>
+                <th>Fuel Type</th>
+                <th>Date</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Address</th>
+                <th>Selection</th> <!-- New column for reservation button -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
+                <td><button onclick="reserveCar('{{ row[0] }}', '{{ row[1] }}', '{{ row[2] }}', '{{ row[3] }}', '{{ row[4] }}', '{{ row[5] }}', '{{ row[6] }}', '{{ row[7] }}', '{{ row[8] }}', '{{ row[9] }}', '{{ row[10] }}')">Reserve</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function logout() {
+            // Add your logout logic here
+            alert("Logout clicked");
+        }
+
+        function reserveCar(licensePlate, model, brand, capacity, fuel, date, from, to, address, loc_id, slot_id) {
+            // Construct the URL with parameters
+            var url = "/confirm_reservation?licensePlate=" + encodeURIComponent(licensePlate)
+                + "&model=" + encodeURIComponent(model)
+                + "&brand=" + encodeURIComponent(brand)
+                + "&capacity=" + encodeURIComponent(capacity)
+                + "&fuel=" + encodeURIComponent(fuel)
+                + "&date=" + encodeURIComponent(date)
+                + "&from=" + encodeURIComponent(from)
+                + "&to=" + encodeURIComponent(to)
+                + "&address=" + encodeURIComponent(address)
+                + "&loc_id=" + encodeURIComponent(loc_id)
+                + "&slot_id=" + encodeURIComponent(slot_id);
+
+            // Redirect to the confirmation page
+            window.location.href = url;
+        }
+    </script>
+</body>
+
+</html>

@@ -77,16 +77,49 @@
         <p>No data available.</p>
     {% endif %}
 
+    {% if address %}
+        {% set addr = address[0] %}
+
+        <label for="name">Building Name:</label>
+        <input type="text" id="name" value="{{ addr.building }}" disabled>
+
+        <br>
+
+        <label for="email">Street Name:</label>
+        <input type="email" id="email" value="{{ addr.street_name }}" disabled>
+
+        <br>
+
+        <label for="phone">City:</label>
+        <input type="tel" id="phone" value="{{ addr.city }}" disabled>
+
+        <br>
+
+        <label for="ssn">State:</label>
+        <input type="text" id="ssn" value="{{ addr.state }}" disabled>
+
+        <br>
+
+        <label for="licenseNumber">Zipcode:</label>
+        <input type="text" id="licenseNumber" value="{{ addr.zipcode }}" disabled>
+
+        <br>
+
+    {% else %}
+        <p>No address available.</p>
+    {% endif %}
+
     <div class="button-container">
         <a href="/add_car">
             <button>Add Car</button>
           </a>
-        <button onclick="addAvailability()">Add Car Availability</button>
+        <a href="/add_car_avail">
+            <button>Add Car Availability</button>
+          </a>
     </div>
     
     <br>
     {% if cars %}
-        {% set car = cars[0] %}
         <table id="carTable">
         <thead>
             <tr>
@@ -103,18 +136,20 @@
             </tr>
           </thead>
           <tbody>
+            {% for row in cars %}
               <tr>
-                <td>{{ car.license_plate }}</td>
-                <td>{{ car.model }}</td>
-                <td>{{ car.brand }}</td>
-                <td>{{ car.capacity }}</td>
-                <td>{{ car.fuel_type }}</td>
-                <td>{{ car.date }}</td>
-                <td>{{ car.start_time }}</td>
-                <td>{{ car.end_time }}</td>
-                <td>{{ car.location_string }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
               </tr>
-          </tbody>
+                  {% endfor %}
+            </tbody>
         </table>
     {% else %}
         <p>No Cars available.</p>
