@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Confirmation</title>
+</head>
+
+<body>
+    <h1>Reservation Confirmation</h1>
+    <form action="/confirm_reservation" method="post">
+        <p>License Plate: {{ license_plate }}</p>
+        <p>Model: {{ model }}</p>
+        <p>Brand: {{ brand }}</p>
+        <p>Capacity: {{ capacity }}</p>
+        <p>Fuel: {{ fuel }}</p>
+        <p>Date: {{ date }}</p>
+        <p>From: {{ from_time }}</p>
+        <p>To: {{ to_time }}</p>
+        <p>Pickup Address: {{ address }}</p>
+        <p>loc_id: {{ loc_id }}</p>
+        <p>slot_id: {{ slot_id }}</p>
+        <!-- Add more details as needed -->
+        
+        <!-- Include hidden input fields to pass data to the server -->
+        <input type="hidden" id="license_plate" name="license_plate" value="{{ license_plate }}">
+        <input type="hidden" id="model" name="model" value="{{ model }}">
+        <input type="hidden" id="brand" name="brand" value="{{ brand }}">
+        <input type="hidden" id="capacity" name="capacity" value="{{ capacity }}">
+        <input type="hidden" id="fuel" name="fuel" value="{{ fuel }}">
+        <input type="hidden" id="date" name="date" value="{{ date }}">
+        <input type="hidden" id="from_time" name="from_time" value="{{ from_time }}">
+        <input type="hidden" id="to_time" name="to_time" value="{{ to_time }}">
+        <input type="hidden" id="address" name="address" value="{{ address }}">
+        <input type="hidden" id="loc_id" name="loc_id" value="{{ loc_id }}">
+        <input type="hidden" id="slot_id" name="slot_id" value="{{ slot_id }}">
+        
+            <label>
+                <input type="radio" name="payment_method" value="card"> Card Payment
+            </label>
+    
+            <label>
+                <input type="radio" name="payment_method" value="online"> Online Payment
+            </label>
+    
+            <br>
+    
+            <button type="submit">Complete Reservation</button>
+        </form>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owner Profile</title>
+    <title>Renters Profile</title>
     <style>
         table {
             border-collapse: collapse;
@@ -35,58 +35,78 @@
     </style>
 </head>
 <body>
-    <h2>Owner Profile</h2>
+    <h2>Renter Profile</h2>
     {% if data %}
-        {% set owner = data[0] %}
+        {% set renters = data[0] %}
 
         <label for="name">Name:</label>
-        <input type="text" id="name" value="{{ owner.name }}" disabled>
+        <input type="text" id="name" value="{{ renters.name }}" disabled>
 
         <br>
 
         <label for="email">Email:</label>
-        <input type="email" id="email" value="{{ owner.email }}" disabled>
+        <input type="email" id="email" value="{{ renters.email }}" disabled>
 
         <br>
 
         <label for="phone">Phone:</label>
-        <input type="tel" id="phone" value="{{ owner.contact }}" disabled>
+        <input type="tel" id="phone" value="{{ renters.contact }}" disabled>
 
         <br>
 
         <label for="ssn">SSN:</label>
-        <input type="text" id="ssn" value="{{ owner.ssn }}" disabled>
+        <input type="text" id="ssn" value="{{ renters.ssn }}" disabled>
 
         <br>
 
         <label for="licenseNumber">License Number:</label>
-        <input type="text" id="licenseNumber" value="{{ owner.license }}" disabled>
+        <input type="text" id="licenseNumber" value="{{ renters.license }}" disabled>
 
         <br>
 
         <label for="ratings">Ratings:</label>
-        <input type="text" id="ratings" value="{{ owner.owner_ratings }}" disabled>
+        <input type="text" id="ratings" value="{{ renters.renters_ratings }}" disabled>
 
-        <br>
-
-        <label for="carNumber">Number of Cars:</label>
-        <input type="text" id="carNumber" value="{{ owner.number_cars }}" disabled>
-        
         <br>
     {% else %}
         <p>No data available.</p>
     {% endif %}
 
-    <div class="button-container">
-        <a href="/add_car">
-            <button>Add Car</button>
-          </a>
-        <button onclick="addAvailability()">Add Car Availability</button>
-    </div>
+    {% if address %}
+        {% set addr = address[0] %}
+
+        <label for="name">Building Name:</label>
+        <input type="text" id="name" value="{{ addr.building }}" disabled>
+
+        <br>
+
+        <label for="email">Street Name:</label>
+        <input type="email" id="email" value="{{ addr.street_name }}" disabled>
+
+        <br>
+
+        <label for="phone">City:</label>
+        <input type="tel" id="phone" value="{{ addr.city }}" disabled>
+
+        <br>
+
+        <label for="ssn">State:</label>
+        <input type="text" id="ssn" value="{{ addr.state }}" disabled>
+
+        <br>
+
+        <label for="licenseNumber">Zipcode:</label>
+        <input type="text" id="licenseNumber" value="{{ addr.zipcode }}" disabled>
+
+        <br>
+
+    {% else %}
+        <p>No address available.</p>
+    {% endif %}
     
     <br>
     {% if cars %}
-        {% set car = cars[0] %}
+    <p> Reservations </p>
         <table id="carTable">
         <thead>
             <tr>
@@ -103,21 +123,23 @@
             </tr>
           </thead>
           <tbody>
+            {% for row in cars %}
               <tr>
-                <td>{{ car.license_plate }}</td>
-                <td>{{ car.model }}</td>
-                <td>{{ car.brand }}</td>
-                <td>{{ car.capacity }}</td>
-                <td>{{ car.fuel_type }}</td>
-                <td>{{ car.date }}</td>
-                <td>{{ car.start_time }}</td>
-                <td>{{ car.end_time }}</td>
-                <td>{{ car.location_string }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td>{{ row[6] }}</td>
+                <td>{{ row[7] }}</td>
+                <td>{{ row[8] }}</td>
               </tr>
-          </tbody>
+                  {% endfor %}
+            </tbody>
         </table>
     {% else %}
-        <p>No Cars available.</p>
+        <p>No Reservations available.</p>
     {% endif %}
    
     {% if message %}

@@ -70,7 +70,7 @@
         <br>
 
         <label for="carNumber">Number of Cars:</label>
-        <input type="text" id="carNumber" value="{{ owner.number_cars }}" disabled>
+        <input type="text" id="carNumber" value="{{ owner.number_cars - 1}}" disabled>
         
         <br>
     {% else %}
@@ -112,10 +112,13 @@
     <div class="button-container">
         <a href="/add_car">
             <button>Add Car</button>
-          </a>
+        </a>
         <a href="/add_car_avail">
             <button>Add Car Availability</button>
-          </a>
+        </a>
+        <a href="/delete_car">
+            <button>Delete Car</button>
+        </a>
     </div>
     
     <br>

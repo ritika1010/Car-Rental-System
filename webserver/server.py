@@ -1,6 +1,7 @@
 
 import os
   # accessible as a variable in index.html:
+from datetime import datetime
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, abort, url_for, session
@@ -58,7 +59,9 @@ def filter_data():
     SELECT 
     C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
     Av.date, av.start_time, av.end_time,
-    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string,
+    l.loc_id,
+    f.slot_id
     FROM 
     car c 
     JOIN 
@@ -70,14 +73,14 @@ def filter_data():
     JOIN 
         Availability av on f.slot_id = av.slot_id
     WHERE 
-        c.capacity = :param_capacity and c.fuel_type = :param_fuel;
+        c.capacity = :param_capacity and c.fuel_type = :param_fuel and av.date  >= CURRENT_DATE;
     """)
 
     query = query.bindparams(param_capacity=capacity,param_fuel=fuel)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
     cursor.close()
-    return render_template('car_list.html', data=filtered_data)
+    return render_template('car_reservation.html', data=filtered_data)
 
   if capacity:
     # Perform database query with filtering
@@ -86,7 +89,9 @@ def filter_data():
     SELECT 
     C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
     Av.date, av.start_time, av.end_time,
-    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string,
+    l.loc_id,
+    f.slot_id
     FROM 
     car c 
     JOIN 
@@ -98,13 +103,13 @@ def filter_data():
     JOIN 
         Availability av on f.slot_id = av.slot_id
     WHERE 
-        c.capacity = :param_capacity;
+        c.capacity = :param_capacity and av.date  >= CURRENT_DATE;
     """)
     query = query.bindparams(param_capacity=capacity)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
     cursor.close()
-    return render_template('car_list.html', data=filtered_data)
+    return render_template('car_reservation.html', data=filtered_data)
   elif fuel:
     # Perform database query with filtering
     # query = text("SELECT license_plate, model, brand, capacity, fuel_type FROM car WHERE fuel_type = :param_fuel")
@@ -112,7 +117,9 @@ def filter_data():
     SELECT 
     C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
     Av.date, av.start_time, av.end_time,
-    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string,
+    l.loc_id,
+    f.slot_id
     FROM 
     car c 
     JOIN 
@@ -124,21 +131,23 @@ def filter_data():
     JOIN 
         Availability av on f.slot_id = av.slot_id
     WHERE 
-        c.fuel_type = :param_fuel;
+        c.fuel_type = :param_fuel and av.date  >= CURRENT_DATE;
     """)
 
     query = query.bindparams(param_fuel=fuel)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
     cursor.close()
-    return render_template('car_list.html', data=filtered_data)
+    return render_template('car_reservation.html', data=filtered_data)
   else:
     # Retrieve all data if capacity is not specified
     query = text("""
     SELECT 
     C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
     Av.date, av.start_time, av.end_time,
-    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string,
+    l.loc_id,
+    f.slot_id
     FROM 
     car c 
     JOIN 
@@ -150,14 +159,14 @@ def filter_data():
     JOIN 
         Availability av on f.slot_id = av.slot_id
     WHERE 
-        c.capacity = :param_capacity and c.fuel_type = :param_fuel;
+        c.capacity = :param_capacity and c.fuel_type = :param_fuel and av.date  >= CURRENT_DATE;
     """)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
     cursor.close()
-    return render_template('car_list.html', data=filtered_data)
+    return render_template('car_reservation.html', data=filtered_data)
 
-  return render_template('car_list.html', data=filtered_data)
+  return render_template('car_reservation.html', data=filtered_data)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -189,9 +198,9 @@ def login():
       if contact == logincontact:
         print("Password matches.")
       else:
-        message = "Incorrect password!!!"
+        error_message = "Incorrect password!!!"
         print("Incorrect password!!!")
-        return render_template('login.html', message = message)
+        return render_template('login.html', error_message = error_message)
 
       #check user type
       ssn = existing_user[0]
@@ -207,7 +216,7 @@ def login():
           return redirect(url_for('owner_profile', ssn = ssn))
         else:
           session['ssn'] = ssn
-          return render_template('renter_profile.html')
+          return redirect(url_for('car_reservation'))
         # go to profile page
       # invalid user type for email
       else:
@@ -223,6 +232,7 @@ def login():
 @app.route('/add_car', methods=['GET','POST'])
 def add_car():
   message = None
+  ssn = session.get('ssn', 'Default Value')
   if request.method == 'POST':
     license_plate = request.form.get('license_plate')
     brand = request.form.get('brand')
@@ -231,6 +241,10 @@ def add_car():
     fuel_type = request.form.get('fuel_type')
     owner_ssn = request.form.get('owner_ssn')
 
+    # check if entered ssn is the correct one
+    if not (ssn == owner_ssn):
+      error_message = "SSN entered is wrong"
+      return render_template('add_car.html', error_message=error_message)
     print(license_plate)
     print(capacity)
     print(brand)
@@ -508,6 +522,7 @@ def owner_profile():
   cursor = g.conn.execute(sql)  
   cars_data = []
   for result in cursor:
+    print(result)
     cars_data.append(result)  # can also be accessed using result[0]
   cursor.close()
 
@@ -547,6 +562,11 @@ def add_car_avail():
   for result in cursor:
     locations.append(result)  # can also be accessed using result[0]
   cursor.close()
+  def get_cars():
+    return cars
+  
+  def get_loc():
+    return locations
 
   if request.method == 'POST':
     license_plate = request.form.get('licensePlate')
@@ -554,7 +574,22 @@ def add_car_avail():
     date = request.form.get('date')
     startTime = request.form.get('startTime')
     endTime = request.form.get('endTime')
-
+    cars = get_cars()
+    locations = get_loc()
+    # check if start time < end time
+    if not (startTime < endTime):
+      error_message = "Start time should be lesser than end time!"
+      context = dict(cars=cars, locations=locations, error_message=error_message)
+      return render_template("add_car_availability.html", **context)
+    
+    # check if date is greater than todays date
+    user_datetime = datetime.strptime(date, '%Y-%m-%d')
+    current_datetime = datetime.now()
+    if user_datetime < current_datetime:
+      error_message = "Cannot book a date in the past!"
+      context = dict(cars=cars, locations=locations, error_message=error_message)
+      return render_template("add_car_availability.html", **context)
+    
     # check if the license plate & loc_id already exists if yes display already available 
     sql = text("SELECT * FROM avail_at WHERE license_plate = :license_plate_param and loc_id = :loc_id;")
     sql = sql.bindparams(license_plate_param=license_plate, loc_id=loc_id)
@@ -611,11 +646,126 @@ def add_car_avail():
       print(f"Error committing changes: {e}")
     print(f"Avail_for car with license plate {license_plate} added successfully.")
 
-
     message = (f"Availability for car with license plate {license_plate} added successfully.")
+    context = dict(cars=cars, locations=locations, message=message)
+    return render_template("add_car_availability.html", **context)
   
   context = dict(cars=cars, locations=locations, message=message)
   return render_template("add_car_availability.html", **context)
+
+@app.route('/delete_car', methods = ['GET', 'POST'])
+def delete_car():
+  if request.method == "POST":
+    ssn = session.get('ssn', 'Default Value')
+    print("SESSION SSN -- " , session_ssn)
+    
+    # get license_plate
+    license_plate = request.form.get('licensePlate')
+
+    # check if license is there
+    lic_check = text("""
+                      SELECT c.license_plate
+                     FROM car c
+                     WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate
+                     """)
+    check_params = {
+              'license_plate': license_plate,
+              'ssn': ssn
+          }
+    with engine.connect() as conn:
+      result = conn.execute(lic_check, check_params)
+      existing_license = result.fetchone()
+
+    # Check if the license plate exists
+    if not existing_license:
+      error_message = "License number does not exist for current owner"
+      return render_template('delete_car.html', error_message=error_message)
+    sql = text("""
+          DELETE
+          FROM car c
+          WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate
+        """)
+    # Bind the parameters to the SQL statement
+    del_params = {
+              'license_plate': license_plate,
+              'ssn': ssn
+          }
+    # Execute the SQL statement
+    with engine.connect() as conn:
+      g.conn.execute(sql, del_params)
+    
+    #  getting context for owner_profile
+      sql = (text("""
+    SELECT 
+        P.*,
+        O.owner_ratings, o.number_cars
+    FROM 
+        people p 
+    JOIN 
+        owner o ON p.ssn = o.ssn
+    WHERE 
+        p.ssn = :ssn_param;
+    """))
+  
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)   
+    owners_data = []
+    for result in cursor:
+      owners_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+    sql = (text("""
+      SELECT 
+      l.*
+      FROM 
+          people p 
+      JOIN 
+          address a ON p.ssn = a.ssn
+      JOIN 
+          location l ON  a.loc_id = l.loc_id
+      WHERE 
+          p.ssn = :ssn_param;
+      """))
+    
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)   
+    address_data = []
+    for result in cursor:
+      address_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+    sql = text("""
+      SELECT 
+      C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+      Av.date, av.start_time, av.end_time,
+      CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+    FROM 
+      car c 
+      LEFT JOIN 
+          avail_at a ON c.license_plate = a.license_plate 
+      LEFT JOIN 
+          location l ON a.loc_id = l.loc_id
+      LEFT JOIN
+          avail_for f on c.license_plate = f.license_plate
+      LEFT JOIN 
+          Availability av on f.slot_id = av.slot_id
+      WHERE
+          c.owner_ssn = :ssn_param;
+      """)
+    sql = sql.bindparams(ssn_param=ssn)
+    cursor = g.conn.execute(sql)  
+    cars_data = []
+    for result in cursor:
+      print(result)
+      cars_data.append(result)  # can also be accessed using result[0]
+    cursor.close()
+
+    try:
+      g.conn.commit()
+    except Exception as e:
+      print(f"Error committing changes: {e}")
+    context = dict(data=owners_data, cars=cars_data, address=address_data)
+    return render_template("owner_profile.html", **context)
+  else:
+    return render_template("delete_car.html")
 
 @app.route('/car_list')
 def car_list():
@@ -646,6 +796,168 @@ def car_list():
 
   context = dict(data = names)
   return render_template("car_list.html", **context)
+
+@app.route('/car_reservation')
+def car_reservation():
+  # DEBUG: this is debugging code to see what request looks like
+  print(request.args)
+
+  cursor = g.conn.execute(text("""
+    SELECT 
+    C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+    Av.date, av.start_time, av.end_time,
+    CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string,
+    l.loc_id,
+    f.slot_id
+   FROM 
+    car c 
+    JOIN 
+        avail_at a ON c.license_plate = a.license_plate 
+    JOIN 
+        location l ON a.loc_id = l.loc_id
+    JOIN
+        avail_for f on c.license_plate = f.license_plate
+    JOIN 
+        Availability av on f.slot_id = av.slot_id and av.date  >= CURRENT_DATE;
+    """))
+
+  names = []
+  for result in cursor:
+    names.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  context = dict(data = names)
+  return render_template("car_reservation.html", **context)
+
+@app.route('/confirm_reservation' , methods=['GET','POST'])
+def confirm_reservation():  
+    message = None
+    # Retrieve parameters from the URL
+    ssn = session.get('ssn', 'Default Value')
+
+    license_plate = request.args.get('licensePlate')
+    model = request.args.get('model')
+    brand = request.args.get('brand')
+    capacity = request.args.get('capacity')
+    fuel = request.args.get('fuel')
+    date = request.args.get('date')
+    from_time = request.args.get('from')
+    to_time = request.args.get('to')
+    address = request.args.get('address')
+    loc_id = request.args.get('loc_id')
+    slot_id = request.args.get('slot_id')
+    print(slot_id)
+
+    if request.method == 'POST':
+      payment_method = request.form.get('payment_method')
+      license_plate = request.form.get('license_plate')
+      date = request.form.get('date')
+      from_time = request.form.get('from_time')
+      to_time = request.form.get('to_time')
+      loc_id = request.form.get('loc_id')
+      slot_id = request.form.get('slot_id')
+      print(slot_id)
+      #add new reservation
+      insert_sql = (text("INSERT INTO reservation (renter_ssn, license_plate, pickup_date, pickup_time, drop_time, payment_details) VALUES "
+                        "(:renter_ssn, :license_plate, :pickup_date ,:pickup_time, :drop_time, :payment_details);"))
+      insert_sql = insert_sql.bindparams(renter_ssn = ssn,license_plate=license_plate,pickup_date=date, pickup_time=from_time, drop_time=to_time, payment_details=payment_method )
+      cursor = g.conn.execute(insert_sql) 
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+        message = "Error in making reservation"
+      print(f"Reservation for car with license plate {license_plate} completed successfully.")
+
+      #delete car availability
+      delete_sql = (text("DELETE FROM avail_for WHERE license_plate = :license_plate AND slot_id = :slot_id;"))
+      delete_sql = delete_sql.bindparams(license_plate=license_plate,slot_id=slot_id )
+      cursor = g.conn.execute(delete_sql) 
+      try:
+        g.conn.commit()
+      except Exception as e:
+        print(f"Error committing changes: {e}")
+      print((f"Availability for car with license plate {license_plate} and {slot_id} deleted successfully."))
+      message =  (f"Reservation for car with license plate {license_plate} completed successfully.")
+    # Render the confirmation page with the retrieved data
+    return render_template('confirm_reservation.html', license_plate=license_plate, model=model, brand=brand,
+                           capacity=capacity, fuel=fuel, date=date, from_time=from_time, to_time=to_time, address=address, 
+                           slot_id=slot_id, loc_id=loc_id, message=message)
+
+@app.route('/renter_profile')
+def renter_profile():
+  print(request.args)
+  ssn = request.args.get('ssn')
+  print(ssn)
+  ssn = session.get('ssn', 'Default Value')
+
+  sql = (text("""
+    SELECT 
+        P.*,
+        r.renter_ratings
+    FROM 
+        people p 
+    JOIN 
+        renters r ON p.ssn = r.ssn
+    WHERE 
+        p.ssn = :ssn_param;
+    """))
+  
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)   
+  owners_data = []
+  for result in cursor:
+    owners_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+  sql = (text("""
+    SELECT 
+     l.*
+    FROM 
+        people p 
+    JOIN 
+        address a ON p.ssn = a.ssn
+    JOIN 
+        location l ON  a.loc_id = l.loc_id
+    WHERE 
+        p.ssn = :ssn_param;
+    """))
+  
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)   
+  address_data = []
+  for result in cursor:
+    address_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
+
+
+  # sql = text("""
+  #   SELECT 
+  #   C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+  #   Av.date, av.start_time, av.end_time,
+  #   CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+  #  FROM 
+  #   car c 
+  #   LEFT JOIN 
+  #       avail_at a ON c.license_plate = a.license_plate 
+  #   LEFT JOIN 
+  #       location l ON a.loc_id = l.loc_id
+  #   LEFT JOIN
+  #       avail_for f on c.license_plate = f.license_plate
+  #   LEFT JOIN 
+  #       Availability av on f.slot_id = av.slot_id
+  #   WHERE
+  #       c.owner_ssn = :ssn_param;
+  #   """)
+  # sql = sql.bindparams(ssn_param=ssn)
+  # cursor = g.conn.execute(sql)  
+  # cars_data = []
+  # for result in cursor:
+  #   cars_data.append(result)  # can also be accessed using result[0]
+  # cursor.close()
+
+  context = dict(data=owners_data,address=address_data)
+  return render_template("renter_profile.html", **context)
 
 
 if __name__ == "__main__":
