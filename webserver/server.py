@@ -278,7 +278,7 @@ def add_car():
       print(f"Car with license plate {license_plate} added successfully.")
 
       # Update the owner table to increment number_cars
-      update_sql = (text("UPDATE owner SET number_cars = number_cars WHERE ssn = :owner_ssn"))
+      update_sql = (text("UPDATE owner SET number_cars = number_cars+1 WHERE ssn = :owner_ssn"))
       update_sql = update_sql.bindparams(owner_ssn=owner_ssn)
       cursor = g.conn.execute(update_sql)
       try:
@@ -678,7 +678,7 @@ def add_car_avail():
 def delete_car():
   if request.method == "POST":
     ssn = session.get('ssn', 'Default Value')
-    print("SESSION SSN -- " , session_ssn)
+    print("SESSION SSN -- " , ssn)
     
     # get license_plate
     license_plate = request.form.get('licensePlate')
@@ -701,10 +701,26 @@ def delete_car():
     if not existing_license:
       error_message = "License number does not exist for current owner"
       return render_template('delete_car.html', error_message=error_message)
+    
+      # Check the number of cars before deletion
+    num_cars_query = text("SELECT number_cars FROM owner WHERE ssn = :ssn")
+    num_cars_params = {'ssn': ssn}
+    with engine.connect() as conn:
+        result = conn.execute(num_cars_query, num_cars_params)
+        num_cars = result.scalar()
+
+    # Check if there is only one car remaining
+    if num_cars == 1:
+        error_message = "Cannot delete the last car for an owner."
+        return render_template('delete_car.html', error_message=error_message)
+
     sql = text("""
           DELETE
           FROM car c
-          WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate
+          WHERE c.owner_ssn = :ssn AND c.license_plate = :license_plate;
+            UPDATE Owner
+            SET number_cars = number_cars - 1
+            WHERE ssn = :ssn;
         """)
     # Bind the parameters to the SQL statement
     del_params = {
@@ -714,9 +730,9 @@ def delete_car():
     # Execute the SQL statement
     with engine.connect() as conn:
       g.conn.execute(sql, del_params)
-    
+
     #  getting context for owner_profile
-      sql = (text("""
+    sql = (text("""
     SELECT 
         P.*,
         O.owner_ratings, o.number_cars
@@ -725,10 +741,10 @@ def delete_car():
     JOIN 
         owner o ON p.ssn = o.ssn
     WHERE 
-        p.ssn = :ssn_param;
+        p.ssn = :ssn;
     """))
   
-    sql = sql.bindparams(ssn_param=ssn)
+    sql = sql.bindparams(ssn=ssn)
     cursor = g.conn.execute(sql)   
     owners_data = []
     for result in cursor:
@@ -744,10 +760,10 @@ def delete_car():
       JOIN 
           location l ON  a.loc_id = l.loc_id
       WHERE 
-          p.ssn = :ssn_param;
+          p.ssn = :ssn;
       """))
     
-    sql = sql.bindparams(ssn_param=ssn)
+    sql = sql.bindparams(ssn=ssn)
     cursor = g.conn.execute(sql)   
     address_data = []
     for result in cursor:
@@ -769,9 +785,9 @@ def delete_car():
       LEFT JOIN 
           Availability av on f.slot_id = av.slot_id
       WHERE
-          c.owner_ssn = :ssn_param;
+          c.owner_ssn = :ssn;
       """)
-    sql = sql.bindparams(ssn_param=ssn)
+    sql = sql.bindparams(ssn=ssn)
     cursor = g.conn.execute(sql)  
     cars_data = []
     for result in cursor:
