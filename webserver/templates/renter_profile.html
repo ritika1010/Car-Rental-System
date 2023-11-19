@@ -113,35 +113,27 @@
     {% endif %}
     
     <br>
-    {% if cars %}
+    {% if reservation_data %}
     <p> Reservations </p>
         <table id="carTable">
         <thead>
             <tr>
               <th>License Plate</th>
-              <th>Model</th>
-              <th>Brand</th>
-              <th>Capacity</th>
-              <th>Fuel Type</th>
-              <th>Date</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Address</th>
+              <th>Pickup Date</th>
+              <th>Pickup Time</th>
+              <th>Drop Time</th>
+              <th>Rate Reservation</th>
 
             </tr>
           </thead>
           <tbody>
-            {% for row in cars %}
+            {% for row in reservation_data %}
               <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
                 <td>{{ row[2] }}</td>
                 <td>{{ row[3] }}</td>
                 <td>{{ row[4] }}</td>
                 <td>{{ row[5] }}</td>
-                <td>{{ row[6] }}</td>
-                <td>{{ row[7] }}</td>
-                <td>{{ row[8] }}</td>
+                <td><button onclick="rateReservation('{{ row[1] }}', '{{ row[2] }}', '{{ row[7] }}')"> Rate </button></td>
               </tr>
                   {% endfor %}
             </tbody>
@@ -153,6 +145,26 @@
     {% if message %}
             <p>{{ message }}</p>
     {% endif %}
+    <div class="button-container">
+        <a href="/car_reservation">
+            <button>Back to Car Reservations</button>
+          </a>
+    </div>
+    <script>
+        function logout() {
+            // Add your logout logic here
+            alert("Logout clicked");
+        }
+
+        function rateReservation( renter_ssn, license_plate, owner_ssn) {
+            // Construct the URL with parameters
+            var url = "/rate_owner?renter_ssn=" + encodeURIComponent(renter_ssn)
+                + "&license_plate=" + encodeURIComponent(license_plate)
+                + "&owner_ssn=" + encodeURIComponent(owner_ssn);
+            // Redirect to the confirmation page
+            window.location.href = url;
+        }
+    </script>
 
 </body>
 </html>

@@ -32,9 +32,29 @@
             display: inline-block;
             margin-right: 10px; /* Adjust the margin as needed */
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .header a {
+            margin-right: 10px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <a href="/logout">Logout</a>
+        <!-- You can replace the above button with an actual user profile button -->
+    </div>
     <div id="navbar">
         <a href="/">Home</a>
         {% if session.ssn %}

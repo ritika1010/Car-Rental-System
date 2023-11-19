@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renters Profile</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        select, input {
+            padding: 5px;
+        }
+
+        .button-container {
+        text-align: center; /* Optional: Center the buttons */
+        }
+
+        .button-container button {
+            display: inline-block;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+    </style>
+</head>
+<body>
+    <br>
+    {% if reservation_data %}
+    <h2> Reservations </h2>
+        <table id="carTable">
+        <thead>
+            <tr>
+              <th>License Plate</th>
+              <th>Pickup Date</th>
+              <th>Pickup Time</th>
+              <th>Drop Time</th>
+              <th>Rate Reservation</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in reservation_data %}
+              <tr>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+                <td><button onclick="rateReservation('{{ row[1] }}', '{{ row[2] }}', '{{ row[7] }}')"> Rate </button></td>
+              </tr>
+                  {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No Reservations available.</p>
+    {% endif %}
+   
+    {% if message %}
+            <p>{{ message }}</p>
+    {% endif %}
+    <div class="button-container">
+        <a href="/owner_profile">
+            <button>Back to Profile</button>
+          </a>
+    </div>
+    <script>
+
+        function rateReservation( renter_ssn, license_plate, owner_ssn) {
+            // Construct the URL with parameters
+            var url = "/rate_renter?renter_ssn=" + encodeURIComponent(renter_ssn)
+                + "&license_plate=" + encodeURIComponent(license_plate)
+                + "&owner_ssn=" + encodeURIComponent(owner_ssn);
+            // Redirect to the confirmation page
+            window.location.href = url;
+        }
+    </script>
+
+</body>
+</html>

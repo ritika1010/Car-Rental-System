@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Rating Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Rate the Car</h2>
+
+    <form action="/rate_owner" method="post">
+        <label for="rating">Select a rating:</label>
+        <input type="radio" name="rating" value="1" id="rating1"><label for="rating1">1</label>
+        <input type="radio" name="rating" value="2" id="rating2"><label for="rating2">2</label>
+        <input type="radio" name="rating" value="3" id="rating3"><label for="rating3">3</label>
+        <input type="radio" name="rating" value="4" id="rating4"><label for="rating4">4</label>
+        <input type="radio" name="rating" value="5" id="rating5"><label for="rating5">5</label>
+
+        <br>
+        <input type="hidden" id="license_plate" name="license_plate" value="{{ license_plate }}">
+        <input type="hidden" id="renter_ssn" name="renter_ssn" value="{{ renter_ssn }}">
+        <input type="hidden" id="owner_ssn" name="owner_ssn" value="{{ owner_ssn }}">
+        <input type="submit" value="Submit Rating">
+    </form>
+    <div class="button-container">
+        <a href="/renter_profile">
+            <button>Cancel</button>
+          </a>
+    </div>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>
