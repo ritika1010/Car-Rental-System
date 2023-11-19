@@ -163,8 +163,7 @@ def filter_data():
         avail_for f on c.license_plate = f.license_plate
     JOIN 
         Availability av on f.slot_id = av.slot_id
-    WHERE 
-        c.capacity = :param_capacity and c.fuel_type = :param_fuel and av.date  >= CURRENT_DATE;
+    ;
     """)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -183,7 +182,7 @@ def add():
 
 @app.route('/', methods=['GET','POST'])
 def login():
-  message = None
+  error_message = None
   if request.method == 'POST':
     loginemail = request.form.get('loginemail')
     logincontact = request.form.get('logincontact')
@@ -225,14 +224,14 @@ def login():
         # go to profile page
       # invalid user type for email
       else:
-        message = (f"Invalid User Type found! Not an {usertype}")
+        error_message = (f"Invalid User Type found! Not an {usertype}")
         print(f"Invalid User Type found! Not an {usertype}")
     # invalid user create account
     else:
-      message = "User not found! Create new account"
+      error_message = "User not found! Create new account"
       print("User not found.")
 
-  return render_template('login.html', message = message)
+  return render_template('login.html', error_message = error_message)
 
 @app.route('/add_car', methods=['GET','POST'])
 def add_car():
@@ -292,6 +291,7 @@ def add_car():
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
     if request.method == 'POST':
+        print('inside create_acc post')
         # Render one template for POST requests
         name = request.form.get('name')
         email = request.form.get('email')
@@ -305,7 +305,13 @@ def create_account():
         city = request.form.get('city')
         state = request.form.get('state')
         zipcode = request.form.get('zipcode')
-
+        # car
+        license_plate = request.form.get('license_plate', None)
+        brand = request.form.get('brand', None)
+        capacity = request.form.get('capacity', None)
+        model = request.form.get('model', None)
+        fuel_type = request.form.get('fuel_type', None)
+        
         sql = text("SELECT ssn FROM people WHERE ssn = :ssn_param ")
         sql = sql.bindparams(ssn_param = ssn)
         cursor = g.conn.execute(sql)     
