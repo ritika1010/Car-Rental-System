@@ -173,6 +173,14 @@ def filter_data():
 
   return render_template('car_reservation.html', data=filtered_data)
 
+# Example of adding new data to the database
+@app.route('/add', methods=['POST'])
+def add():
+  name = request.form['name']
+  g.conn.execute(text('INSERT INTO test(name) VALUES (%s)', name))
+  return redirect('/')
+
+
 @app.route('/', methods=['GET','POST'])
 def login():
   message = None
@@ -944,133 +952,33 @@ def renter_profile():
   cursor.close()
 
 
-  sql = text("""
-    SELECT 
-    r.*, 
-    c.owner_ssn
-    FROM 
-    reservation r 
-    JOIN 
-        car c on r.license_plate = c.license_plate
-    WHERE
-        r.renter_ssn = :ssn_param;
-    """)
-  sql = sql.bindparams(ssn_param=ssn)
-  cursor = g.conn.execute(sql)  
-  reservation_data = []
-  for result in cursor:
-    reservation_data.append(result)  # can also be accessed using result[0]
-  cursor.close()
+  # sql = text("""
+  #   SELECT 
+  #   C.license_plate, c.brand, c.model, c.capacity, c.fuel_type,
+  #   Av.date, av.start_time, av.end_time,
+  #   CONCAT(l.street_name, ',  ', l.building, ',  ', l.city, ',  ', l.state, ' - ', l.zipcode) AS location_string
+  #  FROM 
+  #   car c 
+  #   LEFT JOIN 
+  #       avail_at a ON c.license_plate = a.license_plate 
+  #   LEFT JOIN 
+  #       location l ON a.loc_id = l.loc_id
+  #   LEFT JOIN
+  #       avail_for f on c.license_plate = f.license_plate
+  #   LEFT JOIN 
+  #       Availability av on f.slot_id = av.slot_id
+  #   WHERE
+  #       c.owner_ssn = :ssn_param;
+  #   """)
+  # sql = sql.bindparams(ssn_param=ssn)
+  # cursor = g.conn.execute(sql)  
+  # cars_data = []
+  # for result in cursor:
+  #   cars_data.append(result)  # can also be accessed using result[0]
+  # cursor.close()
 
-  context = dict(data=owners_data,address=address_data, reservation_data=reservation_data)
+  context = dict(data=owners_data,address=address_data)
   return render_template("renter_profile.html", **context)
-
-@app.route('/rate_owner' , methods=['GET','POST'])
-def rate_owner():  
-  message = None
-  # Retrieve parameters from the URL
-  ssn = session.get('ssn', 'Default Value')
-  message = None
-
-  license_plate = request.args.get('license_plate')
-  renter_ssn = request.args.get('renter_ssn')
-  owner_ssn = request.args.get('owner_ssn')
-  if request.method == 'POST':
-      renter_ssn = request.form.get('renter_ssn')
-      license_plate = request.form.get('license_plate')
-      owner_ssn = request.form.get('owner_ssn')
-      rating = request.form.get('rating')
-      print(owner_ssn)
-      avg_rating = None
-      #update rating of owner in the owner car
-      get_sql = (text("SELECT o.owner_ratings FROM owner o WHERE ssn = :owner_ssn;"))
-      get_sql = get_sql.bindparams(owner_ssn=owner_ssn)
-      cursor = g.conn.execute(get_sql)
-      existing_rating = cursor.fetchone()[0]
-      avg_rating = (float(existing_rating) + float(rating)) / 2
-      print(avg_rating)
-      update_sql = (text("UPDATE owner SET owner_ratings = :rating WHERE ssn = :owner_ssn;"))
-      update_sql = update_sql.bindparams(rating=avg_rating, owner_ssn=owner_ssn)
-      cursor = g.conn.execute(update_sql)
-      try:
-        g.conn.commit()
-      except Exception as e:
-        print(f"Error committing changes: {e}")
-        print("Rating was added successfully")
-      message = "Rating was added successfully"
-
-
-  return render_template('rate_owner.html', license_plate=license_plate, renter_ssn=renter_ssn, 
-                        owner_ssn=owner_ssn, message=message)
-
-@app.route('/reservations')
-def reservations():
-  print(request.args)
-  ssn = request.args.get('ssn')
-  print(ssn)
-  ssn = session.get('ssn', 'Default Value')
-  sql = text("""
-    SELECT 
-    r.*, 
-    c.owner_ssn
-    FROM 
-    reservation r 
-    JOIN 
-        car c on r.license_plate = c.license_plate
-    WHERE
-        c.owner_ssn = :ssn_param;
-    """)
-  sql = sql.bindparams(ssn_param=ssn)
-  cursor = g.conn.execute(sql)  
-  reservation_data = []
-  for result in cursor:
-    reservation_data.append(result)  # can also be accessed using result[0]
-  cursor.close()
-
-  context = dict( reservation_data=reservation_data)
-  return render_template("reservations.html", **context)
-
-
-@app.route('/rate_renter' , methods=['GET','POST'])
-def rate_renter():  
-  message = None
-  # Retrieve parameters from the URL
-  ssn = session.get('ssn', 'Default Value')
-  message = None
-  print("in rate renter")
-  license_plate = request.args.get('license_plate')
-  renter_ssn = request.args.get('renter_ssn')
-  owner_ssn = request.args.get('owner_ssn')
-  if request.method == 'POST':
-      renter_ssn = request.form.get('renter_ssn')
-      license_plate = request.form.get('license_plate')
-      owner_ssn = request.form.get('owner_ssn')
-      rating = request.form.get('rating')
-      print(renter_ssn)
-      avg_rating = None
-      #update rating of renter in the renters table
-      get_sql = (text("SELECT r.renter_ratings FROM renters r WHERE ssn = :renter_ssn;"))
-      get_sql = get_sql.bindparams(renter_ssn=renter_ssn)
-      cursor = g.conn.execute(get_sql)
-      existing_rating = cursor.fetchone()[0]
-      if existing_rating:
-        avg_rating = (float(existing_rating) + float(rating)) / 2
-        print(avg_rating)
-        update_sql = (text("UPDATE renters SET renter_ratings = :rating WHERE ssn = :renter_ssn;"))
-        update_sql = update_sql.bindparams(rating=avg_rating, renter_ssn=renter_ssn)
-        cursor = g.conn.execute(update_sql)
-        try:
-          g.conn.commit()
-        except Exception as e:
-          print(f"Error committing changes: {e}")
-          print("Rating was added successfully")
-        message = "Rating was added successfully"
-      else:
-        message = "Renter not found"
-
-
-  return render_template('rate_renter.html', license_plate=license_plate, renter_ssn=renter_ssn, 
-                        owner_ssn=owner_ssn, message=message)
 
 
 if __name__ == "__main__":

@@ -36,6 +36,14 @@
 </head>
 <body>
     <h2>Renter Profile</h2>
+    <div id="navbar">
+        <a href="/">Home</a>
+        {% if session.ssn %}
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
     {% if data %}
         {% set renters = data[0] %}
 
