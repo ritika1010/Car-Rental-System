@@ -42,7 +42,7 @@ def teardown_request(exception):
     pass
 
 @app.route('/logout')
-def logout:
+def logout():
   session['ssn'] = None
   return render_template("login.html")
 
@@ -1003,7 +1003,74 @@ def rate_owner():
   return render_template('rate_owner.html', license_plate=license_plate, renter_ssn=renter_ssn, 
                         owner_ssn=owner_ssn, message=message)
 
+@app.route('/reservations')
+def reservations():
+  print(request.args)
+  ssn = request.args.get('ssn')
+  print(ssn)
+  ssn = session.get('ssn', 'Default Value')
+  sql = text("""
+    SELECT 
+    r.*, 
+    c.owner_ssn
+    FROM 
+    reservation r 
+    JOIN 
+        car c on r.license_plate = c.license_plate
+    WHERE
+        c.owner_ssn = :ssn_param;
+    """)
+  sql = sql.bindparams(ssn_param=ssn)
+  cursor = g.conn.execute(sql)  
+  reservation_data = []
+  for result in cursor:
+    reservation_data.append(result)  # can also be accessed using result[0]
+  cursor.close()
 
+  context = dict( reservation_data=reservation_data)
+  return render_template("reservations.html", **context)
+
+
+@app.route('/rate_renter' , methods=['GET','POST'])
+def rate_renter():  
+  message = None
+  # Retrieve parameters from the URL
+  ssn = session.get('ssn', 'Default Value')
+  message = None
+  print("in rate renter")
+  license_plate = request.args.get('license_plate')
+  renter_ssn = request.args.get('renter_ssn')
+  owner_ssn = request.args.get('owner_ssn')
+  if request.method == 'POST':
+      renter_ssn = request.form.get('renter_ssn')
+      license_plate = request.form.get('license_plate')
+      owner_ssn = request.form.get('owner_ssn')
+      rating = request.form.get('rating')
+      print(renter_ssn)
+      avg_rating = None
+      #update rating of renter in the renters table
+      get_sql = (text("SELECT r.renter_ratings FROM renters r WHERE ssn = :renter_ssn;"))
+      get_sql = get_sql.bindparams(renter_ssn=renter_ssn)
+      cursor = g.conn.execute(get_sql)
+      existing_rating = cursor.fetchone()[0]
+      if existing_rating:
+        avg_rating = (float(existing_rating) + float(rating)) / 2
+        print(avg_rating)
+        update_sql = (text("UPDATE renters SET renter_ratings = :rating WHERE ssn = :renter_ssn;"))
+        update_sql = update_sql.bindparams(rating=avg_rating, renter_ssn=renter_ssn)
+        cursor = g.conn.execute(update_sql)
+        try:
+          g.conn.commit()
+        except Exception as e:
+          print(f"Error committing changes: {e}")
+          print("Rating was added successfully")
+        message = "Rating was added successfully"
+      else:
+        message = "Renter not found"
+
+
+  return render_template('rate_renter.html', license_plate=license_plate, renter_ssn=renter_ssn, 
+                        owner_ssn=owner_ssn, message=message)
 
 
 if __name__ == "__main__":

@@ -32,9 +32,29 @@
             display: inline-block;
             margin-right: 10px; /* Adjust the margin as needed */
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .header a {
+            margin-right: 10px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <a href="/logout">Logout</a>
+        <!-- You can replace the above button with an actual user profile button -->
+    </div>
     <h2>Owner Profile</h2>
     {% if data %}
         {% set owner = data[0] %}
@@ -118,6 +138,9 @@
         </a>
         <a href="/delete_car">
             <button>Delete Car</button>
+        </a>
+        <a href="/reservations">
+            <button>Show Reservations</button>
         </a>
     </div>
     
