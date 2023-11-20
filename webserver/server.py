@@ -262,7 +262,7 @@ def add_car():
       print(f"Car with license plate {license_plate} already exists.")
       message = f"Car with license plate {license_plate} already exists."
     else:
-      if int(capacity) < 0 :
+      if int(capacity) <= 0 :
         message = "Capacity cannot be < 0"
         return render_template('add_car.html', message=message)
 
@@ -467,7 +467,7 @@ def create_account():
               error_message = f"Car with license plate {license_plate} already exists."
               return render_template('create_account.html', error_message=error_message)
             else:
-              if int(capacity) < 0 :
+              if int(capacity) <= 0 :
                 error_message = "Capacity cannot be < 0"
                 return render_template('create_account.html', error_message=error_message)
               insert_sql = (
@@ -666,7 +666,15 @@ def add_car_avail():
       cursor = g.conn.execute(sql)     
       existing_availability = cursor.fetchone()
       slot_id = existing_availability[0]
-
+    #check if already exists in avail_for
+    sql = text("SELECT * FROM avail_for WHERE license_plate = :license_plate_param and slot_id = :slot_id;")
+    sql = sql.bindparams(license_plate_param=license_plate, slot_id=slot_id)
+    cursor = g.conn.execute(sql)     
+    existing_avail_for = cursor.fetchone()
+    if existing_avail_for:
+      message = (f"Availability for car with license plate {license_plate} already exists cannot add duplicate!")
+      context = dict(cars=cars, locations=locations, message=message)
+      return render_template("add_car_availability.html", **context)
     #enter into avail_for
     insert_sql = (text("INSERT INTO avail_for (license_plate, slot_id) VALUES "
                       "(:license_plate, :slot_id);"))
