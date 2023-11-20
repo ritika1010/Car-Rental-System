@@ -641,6 +641,16 @@ def add_car_avail():
     else:
       print(f"Avail at for car with license plate {license_plate} already exists.")
 
+    #check if already reserved for a particular slot
+    sql = text("SELECT * FROM reservation WHERE license_plate = :license_plate_param and pickup_date = :date and pickup_time = :start_time and drop_time = :end_time;")
+    sql = sql.bindparams(license_plate_param=license_plate, date=date, start_time=startTime, end_time=endTime)
+    cursor = g.conn.execute(sql)     
+    existing_avail_for = cursor.fetchone()
+    if existing_avail_for:
+      message = (f"Availability for car with license plate {license_plate} already exists and is resserved!")
+      context = dict(cars=cars, locations=locations, message=message)
+      return render_template("add_car_availability.html", **context)
+
     # check if the availability slot already exists 
     sql = text("SELECT * FROM availability WHERE date = :date and start_time = :start_time and end_time = :end_time;")
     sql = sql.bindparams(date=date, start_time=startTime, end_time=endTime)
