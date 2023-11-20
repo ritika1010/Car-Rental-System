@@ -21,13 +21,15 @@
             padding: 8px;
         }
 
-        button {
-            padding: 10px;
-            background-color: #dc3545; /* Bootstrap's danger color */
-            color: white;
-            border: none;
-            cursor: pointer;
+        .button-container {
+            text-align: center; /* Optional: Center the buttons */
         }
+    
+        .button-container button {
+            display: inline-block;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+      
     </style>
 </head>
 <body>
@@ -40,10 +42,15 @@
         <input type="text" id="licensePlate" name="licensePlate" required>
 
         <br>
-
+        <br>
         <button type="submit">Delete Car</button>
     </form>
 
-    <p>Return to <a href="/owner_profile">Back</a></p>
+   <br>
+    <div class="button-container">
+        <a href="/owner_profile">
+            <button>Back to profile</button>
+          </a>
+    </div>
 </body>
 </html>

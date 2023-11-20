@@ -48,21 +48,16 @@
             border-radius: 5px;
             color: #333;
         }
+        body {
+            text-align: center;
+        } 
     </style>
 </head>
 <body>
     <div class="header">
         <a href="/logout">Logout</a>
-        <!-- You can replace the above button with an actual user profile button -->
     </div>
-    <div id="navbar">
-        <a href="/">Home</a>
-        {% if session.ssn %}
-            <a href="/logout">Logout</a>
-        {% else %}
-            <a href="/login">Login</a>
-        {% endif %}
-    </div>
+
     <h2>Owner Profile</h2>
     {% if data %}
         {% set owner = data[0] %}
@@ -71,32 +66,26 @@
         <input type="text" id="name" value="{{ owner.name }}" disabled>
 
         <br>
-
         <label for="email">Email:</label>
         <input type="email" id="email" value="{{ owner.email }}" disabled>
 
         <br>
-
         <label for="phone">Phone:</label>
         <input type="tel" id="phone" value="{{ owner.contact }}" disabled>
 
         <br>
-
         <label for="ssn">SSN:</label>
         <input type="text" id="ssn" value="{{ owner.ssn }}" disabled>
 
         <br>
-
         <label for="licenseNumber">License Number:</label>
         <input type="text" id="licenseNumber" value="{{ owner.license }}" disabled>
 
         <br>
-
         <label for="ratings">Ratings:</label>
         <input type="text" id="ratings" value="{{ owner.owner_ratings }}" disabled>
 
         <br>
-
         <label for="carNumber">Number of Cars:</label>
         <input type="text" id="carNumber" value="{{ owner.number_cars }}" disabled>
         
@@ -107,32 +96,28 @@
 
     {% if address %}
         {% set addr = address[0] %}
-
+        <br>
         <label for="name">Building Name:</label>
         <input type="text" id="name" value="{{ addr.building }}" disabled>
 
         <br>
-
         <label for="email">Street Name:</label>
         <input type="email" id="email" value="{{ addr.street_name }}" disabled>
 
         <br>
-
         <label for="phone">City:</label>
         <input type="tel" id="phone" value="{{ addr.city }}" disabled>
 
         <br>
-
         <label for="ssn">State:</label>
         <input type="text" id="ssn" value="{{ addr.state }}" disabled>
 
         <br>
-
         <label for="licenseNumber">Zipcode:</label>
         <input type="text" id="licenseNumber" value="{{ addr.zipcode }}" disabled>
 
         <br>
-
+        <br>
     {% else %}
         <p>No address available.</p>
     {% endif %}

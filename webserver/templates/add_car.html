@@ -6,6 +6,10 @@
   <title>Car Information Form</title>
 
   <style>
+    body {
+            text-align: center;
+        } 
+      
     table {
         border-collapse: collapse;
         width: 80%;
@@ -48,22 +52,19 @@
   <form action="/add_car" method="post">
     <label for="license_plate">License Plate:</label>
     <input type="text" id="license_plate" name="license_plate" maxlength="12" required><br>
-
+    <br>
     <label for="brand">Brand:</label>
     <input type="text" id="brand" name="brand" maxlength="20"><br>
-
+    <br>
     <label for="capacity">Capacity:</label>
     <input type="number" id="capacity" name="capacity"><br>
-
+    <br>
     <label for="fuel_type">Fuel Type:</label>
     <input type="text" id="fuel_type" name="fuel_type" maxlength="15"><br>
-
+    <br>
     <label for="model">Model:</label>
     <input type="text" id="model" name="model"><br>
-
-    <!-- <label for="owner_ssn">Owner SSN:</label>
-    <input type="text" id="owner_ssn" name="owner_ssn"><br> -->
-
+    <br>
     <div class="button-container">
       <button type="submit">Submit</button>
     </div>
@@ -72,6 +73,7 @@
     {% if message %}
             <p>{{ message }}</p>
     {% endif %}
+    <br>
     <div class="button-container">
         <a href="/owner_profile">
             <button>Back to profile</button>

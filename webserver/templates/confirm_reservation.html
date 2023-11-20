@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservation Confirmation</title>
+    <style>
+        body {
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
@@ -45,14 +50,14 @@
             </label>
     
             <br>
-    
+            <br>
             <button type="submit">Complete Reservation</button>
         </form>
 
     {% if message %}
         <p>{{ message }}</p>
     {% endif %}
-
+    <br>
     <div class="button-container">
         <a href="/car_reservation">
             <button>Back to Car Listing</button>
