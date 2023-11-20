@@ -243,8 +243,9 @@ def add_car():
     brand = request.form.get('brand')
     capacity = request.form.get('capacity')
     model = request.form.get('model')
-    fuel_type = request.form.get('fuel_type')
+    fuel_type = request.form.get('fuel_type').lower()
     # owner_ssn = request.form.get('owner_ssn')
+
 
     print(license_plate)
     print(capacity)
