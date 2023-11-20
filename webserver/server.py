@@ -163,7 +163,8 @@ def filter_data():
         avail_for f on c.license_plate = f.license_plate
     JOIN 
         Availability av on f.slot_id = av.slot_id
-    ;
+    WHERE 
+        av.date  >= CURRENT_DATE;
     """)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -1087,7 +1088,8 @@ def rate_renter():
       get_sql = get_sql.bindparams(renter_ssn=renter_ssn)
       cursor = g.conn.execute(get_sql)
       existing_rating = cursor.fetchone()[0]
-      if existing_rating:
+      print(existing_rating)
+      if existing_rating is not None:
         avg_rating = (float(existing_rating) + float(rating)) / 2
         print(avg_rating)
         update_sql = (text("UPDATE renters SET renter_ratings = :rating WHERE ssn = :renter_ssn;"))
