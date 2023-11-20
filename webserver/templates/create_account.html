@@ -3,7 +3,10 @@
 <head>
     <title>Create Account</title>
     <style>
-        /* Your CSS styles for the create account page */
+        body {
+            margin-left: 60px; 
+            text-align: center;
+        }
     </style>
      <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -31,19 +34,24 @@
         {% endif %}
         <form action="/create_account" method="post">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" placeholder="Enter name" required>
+            <input type="text" id="name" name="name" pattern="[A-Za-z ]+" placeholder="Enter name" required>
+            <br>
             <br>
             <label for="email">Email (Username):</label>
             <input type="email" id="email" name="email" placeholder="Enter email" required>
             <br>
+            <br>
             <label for="ssn">SSN:</label>
-            <input type="text" id="ssn" name="ssn" placeholder="Enter ssn" required>
+            <input type="text" id="ssn" name="ssn" pattern="\d{3}-\d{2}-\d{4}" placeholder="Enter ssn" required>
+            <br>
             <br>
             <label for="license">License:</label>
-            <input type="text" id="license" name="license" placeholder="Enter License No." required>  
+            <input type="text" id="license" name="license" pattern="[A-Za-z0-9]+" placeholder="Enter License No." required>  
+            <br>
             <br>
             <label for="contact">Contact Number:</label>
-            <input type="password" id="contact" name="contact" placeholder="This will be your password" required>
+            <input type="password" id="contact" name="contact" pattern="[0-9+()\s]+" placeholder="This will be your password" required>
+            <br>
             <br>
             <label for="user-type">User Type:</label>
             <select id="user-type" name="user-type">
@@ -51,41 +59,42 @@
                 <option value="owner">Owner</option>
             </select>
             <br>
+            <br>
             <label for="street_name">Street Name:</label>
             <input type="text" id="street_name" name="street_name" placeholder="Enter street name" required>
             <br>
-
+            <br>
             <label for="building">Building:</label>
             <input type="text" id="building" name="building" placeholder="Enter building" required>
             <br>
-
+            <br>
             <label for="city">City:</label>
-            <input type="text" id="city" name="city" placeholder="Enter city" required>
+            <input type="text" id="city" name="city" pattern="[A-Za-z ]+" placeholder="Enter city" required>
             <br>
-
+            <br>
             <label for="state">State:</label>
-            <input type="text" id="state" name="state" placeholder="Enter state" required>
+            <input type="text" id="state" name="state" pattern="[A-Za-z ]+" placeholder="Enter state" required>
             <br>
-
+            <br>
             <label for="zipcode">Zipcode:</label>
-            <input type="text" id="zipcode" name="zipcode" placeholder="Enter zipcode" required>
+            <input type="text" id="zipcode" name="zipcode" pattern="[0-9]+" placeholder="Enter zipcode" required>
             <br>
-
+            <br>
             <!-- Additional form section for Owner -->
             <div id="additional-form-section" style="display: none;">
                 <p>ADD CAR TO BE A OWNER</p>
                 <label for="license_plate">License Plate:</label>
-                    <input type="text" id="license_plate" name="license_plate" maxlength="12" required><br>
-
+                    <input type="text" id="license_plate" name="license_plate" pattern="[A-Za-z0-9]+" maxlength="12" ><br>
+                    <br>
                     <label for="brand">Brand:</label>
                     <input type="text" id="brand" name="brand" maxlength="20"><br>
-
+                    <br>
                     <label for="capacity">Capacity:</label>
                     <input type="number" id="capacity" name="capacity"><br>
-
+                    <br>
                     <label for="fuel_type">Fuel Type:</label>
                     <input type="text" id="fuel_type" name="fuel_type" maxlength="15"><br>
-
+                    <br>
                     <label for="model">Model:</label>
                     <input type="text" id="model" name="model"><br>
             </div>

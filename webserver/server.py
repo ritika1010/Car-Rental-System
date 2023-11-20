@@ -164,7 +164,7 @@ def filter_data():
     JOIN 
         Availability av on f.slot_id = av.slot_id
     WHERE 
-        c.capacity = :param_capacity and c.fuel_type = :param_fuel and av.date  >= CURRENT_DATE;
+        av.date  >= CURRENT_DATE;
     """)
     cursor = g.conn.execute(query)
     filtered_data = [result for result in cursor]
@@ -183,7 +183,7 @@ def add():
 
 @app.route('/', methods=['GET','POST'])
 def login():
-  message = None
+  error_message = None
   if request.method == 'POST':
     loginemail = request.form.get('loginemail')
     logincontact = request.form.get('logincontact')
@@ -225,14 +225,14 @@ def login():
         # go to profile page
       # invalid user type for email
       else:
-        message = (f"Invalid User Type found! Not an {usertype}")
+        error_message = (f"Invalid User Type found! Not an {usertype}")
         print(f"Invalid User Type found! Not an {usertype}")
     # invalid user create account
     else:
-      message = "User not found! Create new account"
+      error_message = "User not found! Create new account"
       print("User not found.")
 
-  return render_template('login.html', message = message)
+  return render_template('login.html', error_message = error_message)
 
 @app.route('/add_car', methods=['GET','POST'])
 def add_car():
@@ -262,7 +262,7 @@ def add_car():
       print(f"Car with license plate {license_plate} already exists.")
       message = f"Car with license plate {license_plate} already exists."
     else:
-      if int(capacity) < 0 :
+      if int(capacity) <= 0 :
         message = "Capacity cannot be < 0"
         return render_template('add_car.html', message=message)
 
@@ -292,6 +292,7 @@ def add_car():
 @app.route('/create_account', methods=['GET', 'POST'])
 def create_account():
     if request.method == 'POST':
+        print('inside create_acc post')
         # Render one template for POST requests
         name = request.form.get('name')
         email = request.form.get('email')
@@ -305,7 +306,13 @@ def create_account():
         city = request.form.get('city')
         state = request.form.get('state')
         zipcode = request.form.get('zipcode')
-
+        # car
+        license_plate = request.form.get('license_plate', None)
+        brand = request.form.get('brand', None)
+        capacity = request.form.get('capacity', None)
+        model = request.form.get('model', None)
+        fuel_type = request.form.get('fuel_type', None)
+        
         sql = text("SELECT ssn FROM people WHERE ssn = :ssn_param ")
         sql = sql.bindparams(ssn_param = ssn)
         cursor = g.conn.execute(sql)     
@@ -323,8 +330,9 @@ def create_account():
             flash('Please fill out all required fields.')
             return render_template('create_account.html')
         # check on ssn
-        if not (len(ssn) == 9 and ssn.isdigit()):
-          error_message = "SSN should have 9 digits only"
+        print(ssn , " - " , len(ssn))
+        if not (len(ssn) == 11):
+          error_message = "SSN should have length 11 only"
           return render_template('create_account.html', error_message=error_message)
         # if ssn exists
         if existing_user_ssn:
@@ -459,7 +467,7 @@ def create_account():
               error_message = f"Car with license plate {license_plate} already exists."
               return render_template('create_account.html', error_message=error_message)
             else:
-              if int(capacity) < 0 :
+              if int(capacity) <= 0 :
                 error_message = "Capacity cannot be < 0"
                 return render_template('create_account.html', error_message=error_message)
               insert_sql = (
@@ -633,6 +641,16 @@ def add_car_avail():
     else:
       print(f"Avail at for car with license plate {license_plate} already exists.")
 
+    #check if already reserved for a particular slot
+    sql = text("SELECT * FROM reservation WHERE license_plate = :license_plate_param and pickup_date = :date and pickup_time = :start_time and drop_time = :end_time;")
+    sql = sql.bindparams(license_plate_param=license_plate, date=date, start_time=startTime, end_time=endTime)
+    cursor = g.conn.execute(sql)     
+    existing_avail_for = cursor.fetchone()
+    if existing_avail_for:
+      message = (f"Availability for car with license plate {license_plate} already exists and is resserved!")
+      context = dict(cars=cars, locations=locations, message=message)
+      return render_template("add_car_availability.html", **context)
+
     # check if the availability slot already exists 
     sql = text("SELECT * FROM availability WHERE date = :date and start_time = :start_time and end_time = :end_time;")
     sql = sql.bindparams(date=date, start_time=startTime, end_time=endTime)
@@ -658,7 +676,15 @@ def add_car_avail():
       cursor = g.conn.execute(sql)     
       existing_availability = cursor.fetchone()
       slot_id = existing_availability[0]
-
+    #check if already exists in avail_for
+    sql = text("SELECT * FROM avail_for WHERE license_plate = :license_plate_param and slot_id = :slot_id;")
+    sql = sql.bindparams(license_plate_param=license_plate, slot_id=slot_id)
+    cursor = g.conn.execute(sql)     
+    existing_avail_for = cursor.fetchone()
+    if existing_avail_for:
+      message = (f"Availability for car with license plate {license_plate} already exists cannot add duplicate!")
+      context = dict(cars=cars, locations=locations, message=message)
+      return render_template("add_car_availability.html", **context)
     #enter into avail_for
     insert_sql = (text("INSERT INTO avail_for (license_plate, slot_id) VALUES "
                       "(:license_plate, :slot_id);"))
@@ -1081,7 +1107,8 @@ def rate_renter():
       get_sql = get_sql.bindparams(renter_ssn=renter_ssn)
       cursor = g.conn.execute(get_sql)
       existing_rating = cursor.fetchone()[0]
-      if existing_rating:
+      print(existing_rating)
+      if existing_rating is not None:
         avg_rating = (float(existing_rating) + float(rating)) / 2
         print(avg_rating)
         update_sql = (text("UPDATE renters SET renter_ratings = :rating WHERE ssn = :renter_ssn;"))

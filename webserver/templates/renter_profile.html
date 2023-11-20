@@ -32,18 +32,34 @@
             display: inline-block;
             margin-right: 10px; /* Adjust the margin as needed */
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .header a {
+            margin-right: 10px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            color: #333;
+        }
+        body {
+            text-align: center;
+        } 
     </style>
 </head>
 <body>
-    <h2>Renter Profile</h2>
-    <div id="navbar">
-        <a href="/">Home</a>
-        {% if session.ssn %}
-            <a href="/logout">Logout</a>
-        {% else %}
-            <a href="/login">Login</a>
-        {% endif %}
+    
+    <div class="header">
+        <a href="/logout">Logout</a>
     </div>
+    <h2>Renter Profile</h2>
     {% if data %}
         {% set renters = data[0] %}
 
@@ -73,8 +89,9 @@
         <br>
 
         <label for="ratings">Ratings:</label>
-        <input type="text" id="ratings" value="{{ renters.renters_ratings }}" disabled>
+        <input type="text" id="ratings" value="{{ renters.renter_ratings }}" disabled>
 
+        <br>
         <br>
     {% else %}
         <p>No data available.</p>
@@ -114,7 +131,7 @@
     
     <br>
     {% if reservation_data %}
-    <p> Reservations </p>
+    <h3> Reservations </h3>
         <table id="carTable">
         <thead>
             <tr>
