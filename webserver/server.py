@@ -330,8 +330,9 @@ def create_account():
             flash('Please fill out all required fields.')
             return render_template('create_account.html')
         # check on ssn
-        if not (len(ssn) == 9 and ssn.isdigit()):
-          error_message = "SSN should have 9 digits only"
+        print(ssn , " - " , len(ssn))
+        if not (len(ssn) == 11):
+          error_message = "SSN should have length 11 only"
           return render_template('create_account.html', error_message=error_message)
         # if ssn exists
         if existing_user_ssn:

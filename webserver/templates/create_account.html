@@ -34,7 +34,7 @@
         {% endif %}
         <form action="/create_account" method="post">
             <label for="name">Name:</label>
-            <input type="text" id="name" name="name" placeholder="Enter name" required>
+            <input type="text" id="name" name="name" pattern="[A-Za-z ]+" placeholder="Enter name" required>
             <br>
             <br>
             <label for="email">Email (Username):</label>
@@ -42,15 +42,15 @@
             <br>
             <br>
             <label for="ssn">SSN:</label>
-            <input type="text" id="ssn" name="ssn" placeholder="Enter ssn" required>
+            <input type="text" id="ssn" name="ssn" pattern="\d{3}-\d{2}-\d{4}" placeholder="Enter ssn" required>
             <br>
             <br>
             <label for="license">License:</label>
-            <input type="text" id="license" name="license" placeholder="Enter License No." required>  
+            <input type="text" id="license" name="license" pattern="[A-Za-z0-9]+" placeholder="Enter License No." required>  
             <br>
             <br>
             <label for="contact">Contact Number:</label>
-            <input type="password" id="contact" name="contact" placeholder="This will be your password" required>
+            <input type="password" id="contact" name="contact" pattern="[0-9+()\s]+" placeholder="This will be your password" required>
             <br>
             <br>
             <label for="user-type">User Type:</label>
@@ -69,22 +69,22 @@
             <br>
             <br>
             <label for="city">City:</label>
-            <input type="text" id="city" name="city" placeholder="Enter city" required>
+            <input type="text" id="city" name="city" pattern="[A-Za-z ]+" placeholder="Enter city" required>
             <br>
             <br>
             <label for="state">State:</label>
-            <input type="text" id="state" name="state" placeholder="Enter state" required>
+            <input type="text" id="state" name="state" pattern="[A-Za-z ]+" placeholder="Enter state" required>
             <br>
             <br>
             <label for="zipcode">Zipcode:</label>
-            <input type="text" id="zipcode" name="zipcode" placeholder="Enter zipcode" required>
+            <input type="text" id="zipcode" name="zipcode" pattern="[0-9]+" placeholder="Enter zipcode" required>
             <br>
             <br>
             <!-- Additional form section for Owner -->
             <div id="additional-form-section" style="display: none;">
                 <p>ADD CAR TO BE A OWNER</p>
                 <label for="license_plate">License Plate:</label>
-                    <input type="text" id="license_plate" name="license_plate" maxlength="12" ><br>
+                    <input type="text" id="license_plate" name="license_plate" pattern="[A-Za-z0-9]+" maxlength="12" ><br>
                     <br>
                     <label for="brand">Brand:</label>
                     <input type="text" id="brand" name="brand" maxlength="20"><br>
